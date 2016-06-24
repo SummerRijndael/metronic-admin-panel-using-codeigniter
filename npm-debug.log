@@ -1,0 +1,20 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'C:\\Program Files\\nodejs\\node.exe',
+1 verbose cli   'C:\\Users\\Ryann\\AppData\\Roaming\\npm\\node_modules\\npm\\bin\\npm-cli.js',
+1 verbose cli   'v' ]
+2 info using npm@3.9.3
+3 info using node@v4.4.3
+4 verbose stack Error: Invalid package.json
+4 verbose stack     at C:\Users\Ryann\AppData\Roaming\npm\node_modules\npm\lib\view.js:84:30
+4 verbose stack     at ReadFileContext.<anonymous> (C:\Users\Ryann\AppData\Roaming\npm\node_modules\npm\node_modules\read-package-json\read-json.js:90:21)
+4 verbose stack     at ReadFileContext.callback (C:\Users\Ryann\AppData\Roaming\npm\node_modules\npm\node_modules\graceful-fs\graceful-fs.js:78:16)
+4 verbose stack     at FSReqWrap.readFileAfterOpen [as oncomplete] (fs.js:303:13)
+5 verbose cwd C:\xampp\htdocs\linktech
+6 error Windows_NT 10.0.10586
+7 error argv "C:\\Program Files\\nodejs\\node.exe" "C:\\Users\\Ryann\\AppData\\Roaming\\npm\\node_modules\\npm\\bin\\npm-cli.js" "v"
+8 error node v4.4.3
+9 error npm  v3.9.3
+10 error Invalid package.json
+11 error If you need help, you may report this error at:
+11 error     <https://github.com/npm/npm/issues>
+12 verbose exit [ 1, true ]
