@@ -111,11 +111,44 @@ function waga(){
             exit();
 }
 
+function mark(){
+    $this->theme_view = '';
+
+    if ($this->user && $this->input->is_ajax_request()) { 
+         $message = Outbox_messages::find_by_id($this->input->get('message_id'));
+
+         if ($message->important) {
+             $message->important = FALSE;
+             $reply['reply'] = "false";
+         } else {
+             $message->important = TRUE;
+             $reply['reply'] = "true";
+         }
+
+         $message->save();
+
+         $this->output->set_content_type('application/json')->set_output(json_encode($reply));
+    }
+}
+
 function bulk_action($mode = NULL){
     $this->theme_view = '';
 
     if ($this->user && $this->input->is_ajax_request()) {
         switch ($mode) {
+            case 'read':
+                foreach ($this->input->post('mail_ids') as $key => $value) {
+                      $message_array = Outbox_messages::find_by_id($value);
+                      $message_array->status = "read";
+                      $message_array->save();
+                }
+                
+                $reply = array();
+                $reply["token_name"] = $this->security->get_csrf_token_name();
+                $reply["token"] = $this->security->get_csrf_hash();
+                $this->output->set_content_type('application/json')->set_output(json_encode($reply));
+                break;
+
             case 'unread':
                 foreach ($this->input->post('mail_ids') as $key => $value) {
                       $message_array = Outbox_messages::find_by_id($value);
@@ -223,7 +256,7 @@ function load_message_list($mode = NULL){
                                 </label>
                             </td>
                             <td class="inbox-small-cells">
-                                <i class="fa fa-star '. $star .'"></i>
+                                <i class="fa fa-star '. $star .' star-marker" data-id="'.$value->id.'"></i>
                             </td>
                             <td class="view-message hidden-xs">'. $marker . $value->sender .'</td>
                             <td class="view-message ">'. $value->subject .'</td>
@@ -252,15 +285,19 @@ function load_message_list($mode = NULL){
                                     <ul class="dropdown-menu list-actions">
                                         <li>
                                             <a href="'.base_url().'messages/bulk_action/important">
-                                                <i class="fa fa-star"></i> important </a>
+                                                <i class="fa fa-star"></i> Mark as Important </a>
+                                        </li>
+                                        <li>
+                                            <a href="'.base_url().'messages/bulk_action/read">
+                                                <i class="icon-envelope-open"></i> Mark as Read </a>
                                         </li>
                                         <li>
                                             <a href="'.base_url().'messages/bulk_action/unread">
-                                                <i class="fa fa-pencil"></i> Mark as Read </a>
+                                                <i class="fa fa-envelope"></i> Mark as Unread </a>
                                         </li>
                                         <li>
                                             <a href="'.base_url().'messages/bulk_action/spam">
-                                                <i class="fa fa-ban"></i> Spam </a>
+                                                <i class="fa fa-ban"></i> Mark as Spam </a>
                                         </li>
                                         <li class="divider"> </li>
                                         <li>
@@ -405,7 +442,33 @@ function check_counters(){
     $return_data = array();
 
     if ( $this->user && $this->input->is_ajax_request() ) {
-         
+        
+        $message_array = Outbox_messages::find('all', array('conditions'=> array(' status = ? and deleted != ? and spam != ?', "new",TRUE, TRUE)));
+        
+        $messages = '';
+
+        if ($message_array) {
+                 foreach($message_array as $key => $value){
+                      $unix = human_to_unix(date_format(date_create($value->time),'Y-m-d G:i')); 
+                      $moment = time_ago($unix, false);
+
+                      $messages =  '<li>
+                            <a href="#">
+                                <span class="photo">
+                                    <img src="' . base_url() . 'files/media/avatars/no-pic.png" class="img-circle" alt=""> </span>
+                                <span class="subject">
+                                    <span class="from">' . character_limiter($value->subject, 20) . '</span>
+                                    <span class="time">' . $moment . '</span>
+                                </span>
+                                <span class="message">'. character_limiter(strip_tags($value->message), 20) . '</span>
+                            </a>
+                        </li>'. $messages;
+                }
+                 
+        }
+
+        $return_data['peek'] = $messages;
+
         $message_count_inbox = $this->check_message();
         $return_data['inbox'] = $message_count_inbox[0]->message_number;
 

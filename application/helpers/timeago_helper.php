@@ -14,13 +14,13 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
         $timespan = explode(",",  trim($timespan)); 
         foreach($timespan as $key => $value){ 
             $timespanvalue = explode(" ", trim($value)); 
-            $arrayvalue = $timespanvalue[0]." ".$instance->lang->line('application_'.$timespanvalue[1]); 
+            $arrayvalue = $timespanvalue[0]." ".$timespanvalue[1]; 
             $timepices[$key] = $arrayvalue;
         }
         $return = $timepices[0];
         if(isset($timepices[1]) && $short == false){
-            $return .= ' '.$instance->lang->line('application_and').' '.$timepices[1];
+            $return .= ' '.' '.$timepices[1];
         }
-        $return .= ' '.$instance->lang->line('application_ago');
+        $return .= ' '.' ago';
         return $return;
     }

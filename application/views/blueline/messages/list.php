@@ -11,7 +11,7 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="javascript:;" data-type="important" data-title="Important"> Important  <span class="badge badge-info message-counter-important"><?=($important > 0)? $important: NULL;?></span></a>
+                                            <a href="javascript:;" data-type="important" data-title="Important"> Important  <span class="badge badge-danger message-counter-important"><?=($important > 0)? $important: NULL;?></span></a>
                                         </li>
                                         <li>
                                             <a href="javascript:;" data-type="spam" data-title="Spam"> Spam  <span class="badge badge-info message-counter-spam"><?=($spam > 0)? $spam: NULL;?></span></a>

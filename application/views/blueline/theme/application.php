@@ -241,67 +241,28 @@ Website: http://www.linktech.com.ph/
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li class="external">
-                                        <h3>You have
-                                            <span class="bold">7 New</span> Messages</h3>
-                                        <a href="app_inbox.html">view all</a>
+                                    <?php if(($messages_new > 0)):?>
+                                        <h3 class="message-badge">You have <span class="bold"><?=$messages_new;?> new</span> messages.</h3>
+                                    <?php else:?>
+                                        <h3 class="message-badge">You have no new messages.</h3>
+                                    <?php endif;?>    
+                                        <a href="<?=base_url().'messages';?>">view all</a>
                                     </li>
                                     <li>
-                                        <ul class="dropdown-menu-list scroller" style="height: 275px;" data-handle-color="#637283">
+                                        <ul class="dropdown-menu-list scroller message-peeker" style="height: 250px;" data-handle-color="#637283">
+                                        <?php foreach($messages_list as $key => $value):?>
                                             <li>
                                                 <a href="#">
                                                     <span class="photo">
-                                                        <img src="<?=base_url();?>assets/layouts/layout3/img/avatar2.jpg" class="img-circle" alt=""> </span>
+                                                        <img src="<?=base_url();?>files/media/avatars/no-pic.png" class="img-circle" alt=""> </span>
                                                     <span class="subject">
-                                                        <span class="from"> Lisa Wong </span>
-                                                        <span class="time">Just Now </span>
+                                                        <span class="from"> <?=character_limiter($value->subject, 20);?> </span>
+                                                        <span class="time"><?php $unix = human_to_unix(date_format(date_create($value->time),'Y-m-d G:i')); echo time_ago($unix, false);?> </span>
                                                     </span>
-                                                    <span class="message"> Vivamus sed auctor nibh congue nibh. auctor nibh auctor nibh... </span>
+                                                    <span class="message"><?php echo character_limiter(strip_tags($value->message), 20);?></span>
                                                 </a>
                                             </li>
-                                            <li>
-                                                <a href="#">
-                                                    <span class="photo">
-                                                        <img src="<?=base_url();?>assets/layouts/layout3/img/avatar3.jpg" class="img-circle" alt=""> </span>
-                                                    <span class="subject">
-                                                        <span class="from"> Richard Doe </span>
-                                                        <span class="time">16 mins </span>
-                                                    </span>
-                                                    <span class="message"> Vivamus sed congue nibh auctor nibh congue nibh. auctor nibh auctor nibh... </span>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#">
-                                                    <span class="photo">
-                                                        <img src="<?=base_url();?>assets/layouts/layout3/img/avatar1.jpg" class="img-circle" alt=""> </span>
-                                                    <span class="subject">
-                                                        <span class="from"> Bob Nilson </span>
-                                                        <span class="time">2 hrs </span>
-                                                    </span>
-                                                    <span class="message"> Vivamus sed nibh auctor nibh congue nibh. auctor nibh auctor nibh... </span>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#">
-                                                    <span class="photo">
-                                                        <img src="<?=base_url();?>assets/layouts/layout3/img/avatar2.jpg" class="img-circle" alt=""> </span>
-                                                    <span class="subject">
-                                                        <span class="from"> Lisa Wong </span>
-                                                        <span class="time">40 mins </span>
-                                                    </span>
-                                                    <span class="message"> Vivamus sed auctor 40% nibh congue nibh... </span>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#">
-                                                    <span class="photo">
-                                                        <img src="<?=base_url();?>assets/layouts/layout3/img/avatar3.jpg" class="img-circle" alt=""> </span>
-                                                    <span class="subject">
-                                                        <span class="from"> Richard Doe </span>
-                                                        <span class="time">46 mins </span>
-                                                    </span>
-                                                    <span class="message"> Vivamus sed congue nibh auctor nibh congue nibh. auctor nibh auctor nibh... </span>
-                                                </a>
-                                            </li>
+                                        <?php endforeach;?>
                                         </ul>
                                     </li>
                                 </ul>

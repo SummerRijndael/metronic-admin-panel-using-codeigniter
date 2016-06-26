@@ -71,6 +71,8 @@ class MY_Controller extends CI_Controller
 
 			/*$this->view_data['online_counter'] = User::all(array('select'=>'count(id) as counter', 'conditions' => array('last_active+(30 * 60) > ? AND status = ?', time(), "active")));
 			$this->view_data['messages_new'] = $this->check_message($email);*/
+			$message_array = Outbox_messages::find('all', array('conditions'=> array('status = ? and deleted != ? and spam != ?', "new",TRUE, TRUE)));
+			$this->view_data['messages_list'] = $message_array;
 			$this->view_data['messages_new'] = $this->check_message()[0]->message_number;
 				
 		}
