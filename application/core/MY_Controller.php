@@ -85,7 +85,7 @@ class MY_Controller extends CI_Controller
 	}
 
 	protected function check_message(){
-		return Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where status = "new" ');
+		return Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where status = "new" and deleted != TRUE and spam != TRUE');
 	}
 
 	protected function check_online(){

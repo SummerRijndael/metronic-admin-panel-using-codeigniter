@@ -7,26 +7,27 @@
                                     <ul class="inbox-nav">
                                         <li class="active">
                                             <a href="javascript:;" data-type="inbox" data-title="Inbox"> Inbox
-                                            <?php if($message_count >= 1):?>
-                                                <span class="badge badge-success message-counter"><?=$message_count;?></span>
-                                            <?php endif;?>
+                                                <span class="badge badge-success message-counter"><?=($inbox > 0)? $inbox: NULL;?></span>
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="javascript:;" data-type="important" data-title="Inbox"> Important </a>
+                                            <a href="javascript:;" data-type="important" data-title="Important"> Important  <span class="badge badge-info message-counter-important"><?=($important > 0)? $important: NULL;?></span></a>
+                                        </li>
+                                        <li>
+                                            <a href="javascript:;" data-type="spam" data-title="Spam"> Spam  <span class="badge badge-info message-counter-spam"><?=($spam > 0)? $spam: NULL;?></span></a>
                                         </li>
                                         <li>
                                             <a href="javascript:;" data-type="sent" data-title="Sent"> Sent </a>
                                         </li>
                                         <li>
                                             <a href="javascript:;" data-type="draft" data-title="Draft"> Draft
-                                                <span class="badge badge-danger">8</span>
+                                                <span class="badge badge-danger">100</span>
                                             </a>
                                         </li>
                                         <li class="divider"></li>
                                         <li>
                                             <a href="javascript:;" class="sbold uppercase" data-title="Trash"> Trash
-                                                <span class="badge badge-info">23</span>
+                                                <span class="badge badge-info message-counter-trash"><?=($trash > 0)? $trash: NULL;?></span>
                                             </a>
                                         </li>
                         

@@ -237,9 +237,7 @@ Website: http://www.linktech.com.ph/
                             <li class="dropdown dropdown-extended dropdown-inbox" id="header_inbox_bar">
                                 <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
                                     <i class="icon-envelope-open"></i> 
-                                <?php if($messages_new > 0): ?>
-                                    <span class="badge badge-default message-counter"> <?=$messages_new;?> </span>
-                                <?php endif;?>
+                                    <span class="badge badge-default message-counter"> <?=($messages_new > 0)? $messages_new : NULL;?> </span>
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li class="external">

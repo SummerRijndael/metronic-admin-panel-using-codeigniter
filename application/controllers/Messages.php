@@ -14,8 +14,19 @@ class Messages extends MY_Controller {
 	public function index()
 	{
         $message_count = $this->check_message();
-        $this->view_data['message_count'] = intval($message_count[0]->message_number); 
-		$this->content_view = 'messages/list';
+        $this->view_data['inbox'] = intval($message_count[0]->message_number);
+        
+        $message_count_important = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where important = TRUE');
+        $this->view_data['important'] = $message_count_important[0]->message_number;
+
+        $message_count_spam = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where spam = TRUE and deleted != TRUE');
+        $this->view_data['spam'] = $message_count_spam[0]->message_number;
+
+
+        $message_count_trash = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where status = "deleted"');
+        $this->view_data['trash'] = intval($message_count_trash[0]->message_number); 
+		
+        $this->content_view = 'messages/list';
         //$this->session->set_flashdata('message', 'success: message!');
 	}
 
@@ -100,29 +111,119 @@ function waga(){
             exit();
 }
 
-function load_message_list(){
+function bulk_action($mode = NULL){
+    $this->theme_view = '';
+
+    if ($this->user && $this->input->is_ajax_request()) {
+        switch ($mode) {
+            case 'unread':
+                foreach ($this->input->post('mail_ids') as $key => $value) {
+                      $message_array = Outbox_messages::find_by_id($value);
+                      $message_array->status = "new";
+                      $message_array->save();
+                }
+                
+                $reply = array();
+                $reply["token_name"] = $this->security->get_csrf_token_name();
+                $reply["token"] = $this->security->get_csrf_hash();
+                $this->output->set_content_type('application/json')->set_output(json_encode($reply));
+                break;
+
+            case 'spam':
+                foreach ($this->input->post('mail_ids') as $key => $value) {
+                      $message_array = Outbox_messages::find_by_id($value);
+                      $message_array->spam = TRUE;
+                      $message_array->save();
+                }
+                
+                $reply = array();
+                $reply["token_name"] = $this->security->get_csrf_token_name();
+                $reply["token"] = $this->security->get_csrf_hash();
+                $this->output->set_content_type('application/json')->set_output(json_encode($reply));
+                break;
+
+            case 'important':
+                foreach ($this->input->post('mail_ids') as $key => $value) {
+                      $message_array = Outbox_messages::find_by_id($value);
+                      $message_array->important = TRUE;
+                      $message_array->save();
+                }
+                
+                $reply = array();
+                $reply["token_name"] = $this->security->get_csrf_token_name();
+                $reply["token"] = $this->security->get_csrf_hash();
+                $this->output->set_content_type('application/json')->set_output(json_encode($reply));
+                break;
+
+            case 'delete':
+                foreach ($this->input->post('mail_ids') as $key => $value) {
+                      $message_array = Outbox_messages::find_by_id($value);
+                      $message_array->deleted = TRUE;
+                      $message_array->save();
+                }
+                
+                $reply = array();
+                $reply["token_name"] = $this->security->get_csrf_token_name();
+                $reply["token"] = $this->security->get_csrf_hash();
+                $this->output->set_content_type('application/json')->set_output(json_encode($reply));
+                break;
+            
+            default:
+                # code...
+                break;
+        }
+    } else {
+        show_404();
+    }
+}
+
+function load_message_list($mode = NULL){
     if ( $this->input->is_ajax_request() && $this->user) {
             $this->theme_view = '';
             $messages = "";
-            $message_array = Outbox_messages::find('all', array('conditions'=> array(' status != ?', 'deleted')));
-            $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where status != "deleted"');
+
+            switch ($mode) {
+                case 'inbox':
+                    $message_array = Outbox_messages::find('all', array('conditions'=> array(' deleted != ? and spam != ?', TRUE, TRUE)));
+                    $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where deleted != TRUE and spam != TRUE');
+                    break;
+                case 'important':
+                    $message_array = Outbox_messages::find('all', array('conditions'=> array(' important = ?', TRUE)));
+                    $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where important = TRUE');
+                    break;
+                case 'spam':
+                    $message_array = Outbox_messages::find('all', array('conditions'=> array(' spam = ? and deleted != ?', TRUE, TRUE)));
+                    $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where spam = TRUE and deleted != TRUE');
+                    break;
+                case 'trash':
+                    $message_array = Outbox_messages::find('all', array('conditions'=> array(' deleted = ? and spam != ? ', TRUE, TRUE)));
+                    $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where deleted = TRUE and spam != TRUE');
+                    break;
+                
+                default:
+                    # code...
+                    break;
+            }
+            
+
             $display_counter = ($message_count[0]->message_number > 0) ? 1 . " - " . $message_count[0]->message_number . " of ". $message_count[0]->message_number : NULL;
 
             if ($message_array) {
                  foreach($message_array as $key => $value){
+                            $star = ($value->important)? " inbox-started": NULL;
                             $status = ($value->status == "new")? 'unread': NULL;
                             $marker = ($value->status == "new")? '<i class="fa fa-envelope"></i> &nbsp;': '<i class="icon-envelope-open"></i> &nbsp;';
                             $attachment = ($value->attachment)? '<i class="fa fa-paperclip"></i>': NULL;
                             
-                            $messages ='<tr class="' . $status . '" data-messageid="'.$value->id.'">
+                            $messages ='<tr class="' . $status . ' col-message" data-messageid="'.$value->id.'">
                                <td class="inbox-small-cells">
                                 <label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">
-                                    <input type="checkbox" class="mail-checkbox" value="1" />
+                                    <input type="checkbox" class="mail-checkbox" name="mails[]" value="'.$value->id.'" />
                                     <span></span>
                                 </label>
                             </td>
                             <td class="inbox-small-cells">
-                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star '. $star .'"></i>
                             </td>
                             <td class="view-message hidden-xs">'. $marker . $value->sender .'</td>
                             <td class="view-message ">'. $value->subject .'</td>
@@ -148,24 +249,28 @@ function load_message_list(){
                                     <a class="btn btn-sm blue btn-outline dropdown-toggle sbold" href="javascript:;" data-toggle="dropdown"> Actions
                                         <i class="fa fa-angle-down"></i>
                                     </a>
-                                    <ul class="dropdown-menu">
+                                    <ul class="dropdown-menu list-actions">
                                         <li>
-                                            <a href="javascript:;">
+                                            <a href="'.base_url().'messages/bulk_action/important">
+                                                <i class="fa fa-star"></i> important </a>
+                                        </li>
+                                        <li>
+                                            <a href="'.base_url().'messages/bulk_action/unread">
                                                 <i class="fa fa-pencil"></i> Mark as Read </a>
                                         </li>
                                         <li>
-                                            <a href="javascript:;">
+                                            <a href="'.base_url().'messages/bulk_action/spam">
                                                 <i class="fa fa-ban"></i> Spam </a>
                                         </li>
                                         <li class="divider"> </li>
                                         <li>
-                                            <a href="javascript:;">
+                                            <a href="'.base_url().'messages/bulk_action/delete">
                                                 <i class="fa fa-trash-o"></i> Delete </a>
                                         </li>
                                     </ul>
                                 </div>
                                
-                               view <select name="accounts_length" class="form-control input-xs input-sm input-inline">
+                               <select name="accounts_length" class="form-control input-xs input-sm input-inline">
                                    <option value="10">10</option>
                                    <option value="20">20</option>
                                    <option value="50">50</option>
@@ -220,13 +325,13 @@ function view_message(){
                                 <span class="sbold"> me </span> on '. date_format(date_create($message_array->time), "M. d, Y h:i:s a") .'</div>
                             <div class="col-md-5 inbox-info-btn">
                                 <div class="btn-group">
-                                    <button data-messageid="23" class="btn green reply-btn">
+                                    <button data-messageid="'.$message_array->id.'" class="btn green reply-btn">
                                         <i class="fa fa-reply"></i> Reply
                                         <i class="fa fa-angle-down"></i>
                                     </button>
                                     <ul class="dropdown-menu pull-right">
                                         <li>
-                                            <a href="javascript:;" data-messageid="23" class="reply-btn">
+                                            <a href="javascript:;" data-messageid="'.$message_array->id.'" class="reply-btn">
                                                 <i class="fa fa-reply"></i> Reply </a>
                                         </li>
                                         <li>
@@ -295,20 +400,25 @@ function view_message(){
     }
 }
 
-function check_counters($mode = NULL){
+function check_counters(){
     $this->theme_view = '';
-    if ( $this->user && $this->input->is_ajax_request() ) {
-         switch ($mode) {
-            case 'inbox':
-                 $message_count = $this->check_message();
-                 break;
-            
-            default:
-                 //code    
-                 break;
-        }
+    $return_data = array();
 
-        $this->output->set_content_type('text/html')->set_output($message_count[0]->message_number);
+    if ( $this->user && $this->input->is_ajax_request() ) {
+         
+        $message_count_inbox = $this->check_message();
+        $return_data['inbox'] = $message_count_inbox[0]->message_number;
+
+        $message_count_trash = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where deleted = TRUE');
+        $return_data['trash'] = $message_count_trash[0]->message_number;
+
+        $message_count_important = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where important = TRUE');
+        $return_data['important'] = $message_count_important[0]->message_number;
+
+        $message_count_spam = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where spam = TRUE and deleted != TRUE');
+        $return_data['spam'] = $message_count_spam[0]->message_number;
+
+        $this->output->set_content_type('application/json')->set_output(json_encode($return_data));
 
     } else {
         show_404();
