@@ -38,12 +38,74 @@
                             <div class="col-md-10">
                                 <div class="inbox-body">
                                     <div class="inbox-header">
-                                        <h1 class="pull-left">Inbox</h1>
+                                        <h1 class="pull-left inbox-title">Inbox</h1>
                                     
                                     </div>
                                     <div class="inbox-content">
-                                        
-                                        
+                                        <table class="table table-bordered table-striped table-advance table-hover <?=(isset($message))? 'display-none': NULL; ?>">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="3">
+                                                        <label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">
+                                                            <input type="checkbox" class="mail-group-checkbox" />
+                                                            <span></span>
+                                                        </label>
+                                                        <div class="btn-group input-actions">
+                                                            <a class="btn btn-sm blue btn-outline dropdown-toggle sbold" href="javascript:;" data-toggle="dropdown"> Actions
+                                                                <i class="fa fa-angle-down"></i>
+                                                            </a>
+                                                            <ul class="dropdown-menu list-actions">
+                                                                <li>
+                                                                    <a href="<?=base_url();?>messages/bulk_action/important">
+                                                                        <i class="fa fa-star"></i> Mark as Important </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a href="<?=base_url();?>messages/bulk_action/read">
+                                                                        <i class="icon-envelope-open"></i> Mark as Read </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a href="<?=base_url();?>messages/bulk_action/unread">
+                                                                        <i class="fa fa-envelope"></i> Mark as Unread </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a href="<?=base_url();?>messages/bulk_action/spam">
+                                                                        <i class="fa fa-ban"></i> Mark as Spam </a>
+                                                                </li>
+                                                                <li class="divider"> </li>
+                                                                <li>
+                                                                    <a href="<?=base_url();?>messages/bulk_action/delete">
+                                                                        <i class="fa fa-trash-o"></i> Delete </a>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                       
+                                                       <select id="filter" class="form-control input-xs input-sm input-inline">
+                                                           <option value="10">10</option>
+                                                           <option value="20">20</option>
+                                                           <option value="50">50</option>
+                                                           <option value="100">100</option>
+                                                           <option value="150">150</option>
+                                                       </select> messages per pages.
+                                                    </th>
+                                                    <th class="pagination-control" colspan="3">
+                                                        <span class="pagination-info"></span>
+                                                        <a class="btn btn-sm blue btn-outline">
+                                                            <i class="fa fa-angle-left"></i>
+                                                        </a>
+                                                        <a class="btn btn-sm blue btn-outline">
+                                                            <i class="fa fa-angle-right"></i>
+                                                        </a>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                                <tbody id="mail_contents">
+
+                                                </tbody>
+                                            </table>  
+                                            
+                                            <div class="viewer">
+                                                <?=(isset($message))? $message: NULL; ?>
+                                            </div>
                                     </div>
                                 </div>
                             </div>

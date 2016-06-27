@@ -31,6 +31,7 @@ class Messages extends MY_Controller {
 	}
 
 function waga(){
+            $this->load->helper('security');
             $this->load->helper('string');
             $this->theme_view = '';
             //print_r(explode("<", "Google <no-reply@accounts.google.com>"));
@@ -60,7 +61,20 @@ function waga(){
                 $id_array = $this->peeker->get_ids_from_search();
                 
                 //walk trough emails
-                $details = array();                
+                $details = array(); 
+
+                  function reference(){
+                        $str = do_hash(random_string('md5', 40), 'sha1'); // MD5
+                        
+                        $ref_id = Outbox_messages::find_by_view_id($str);  
+
+                        if(!empty($ref_id)){
+                            reference();
+                        }
+                        else{
+                            return $str;
+                        }
+                    }               
 
                 foreach($id_array as $email_id){
                     $email_object = $this->peeker->get_message($email_id);
@@ -102,6 +116,9 @@ function waga(){
                     $details['attachment'] = $attachment;
                     //$details['headers'] = $email_object->get_header_array();
 
+                    $reference = reference();
+                    $details['view_id'] = $reference;
+
                     $outbox = Outbox_messages::create($details);
                 }
             }
@@ -115,7 +132,7 @@ function mark(){
     $this->theme_view = '';
 
     if ($this->user && $this->input->is_ajax_request()) { 
-         $message = Outbox_messages::find_by_id($this->input->get('message_id'));
+         $message = Outbox_messages::find_by_view_id($this->input->get('message_id'));
 
          if ($message->important) {
              $message->important = FALSE;
@@ -138,7 +155,7 @@ function bulk_action($mode = NULL){
         switch ($mode) {
             case 'read':
                 foreach ($this->input->post('mail_ids') as $key => $value) {
-                      $message_array = Outbox_messages::find_by_id($value);
+                      $message_array = Outbox_messages::find_by_view_id($value);
                       $message_array->status = "read";
                       $message_array->save();
                 }
@@ -151,7 +168,7 @@ function bulk_action($mode = NULL){
 
             case 'unread':
                 foreach ($this->input->post('mail_ids') as $key => $value) {
-                      $message_array = Outbox_messages::find_by_id($value);
+                      $message_array = Outbox_messages::find_by_view_id($value);
                       $message_array->status = "new";
                       $message_array->save();
                 }
@@ -164,7 +181,7 @@ function bulk_action($mode = NULL){
 
             case 'spam':
                 foreach ($this->input->post('mail_ids') as $key => $value) {
-                      $message_array = Outbox_messages::find_by_id($value);
+                      $message_array = Outbox_messages::find_by_view_id($value);
                       $message_array->spam = TRUE;
                       $message_array->save();
                 }
@@ -177,7 +194,7 @@ function bulk_action($mode = NULL){
 
             case 'important':
                 foreach ($this->input->post('mail_ids') as $key => $value) {
-                      $message_array = Outbox_messages::find_by_id($value);
+                      $message_array = Outbox_messages::find_by_view_id($value);
                       $message_array->important = TRUE;
                       $message_array->save();
                 }
@@ -190,7 +207,7 @@ function bulk_action($mode = NULL){
 
             case 'delete':
                 foreach ($this->input->post('mail_ids') as $key => $value) {
-                      $message_array = Outbox_messages::find_by_id($value);
+                      $message_array = Outbox_messages::find_by_view_id($value);
                       $message_array->deleted = TRUE;
                       $message_array->save();
                 }
@@ -212,24 +229,31 @@ function bulk_action($mode = NULL){
 
 function load_message_list($mode = NULL){
     if ( $this->input->is_ajax_request() && $this->user) {
+            
+            if($this->input->get('filter')){
+                $filter = $this->input->get('filter');
+            } else {
+                $filter = 10;
+            }   
+
             $this->theme_view = '';
             $messages = "";
 
             switch ($mode) {
                 case 'inbox':
-                    $message_array = Outbox_messages::find('all', array('conditions'=> array(' deleted != ? and spam != ?', TRUE, TRUE)));
+                    $message_array = Outbox_messages::find('all', array('limit'=>$filter,'offset'=>0,'conditions'=> array(' deleted != ? and spam != ?', TRUE, TRUE)));
                     $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where deleted != TRUE and spam != TRUE');
                     break;
                 case 'important':
-                    $message_array = Outbox_messages::find('all', array('conditions'=> array(' important = ?', TRUE)));
+                    $message_array = Outbox_messages::find('all', array('limit'=>$filter,'offset'=>0,'conditions'=> array(' important = ?', TRUE)));
                     $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where important = TRUE');
                     break;
                 case 'spam':
-                    $message_array = Outbox_messages::find('all', array('conditions'=> array(' spam = ? and deleted != ?', TRUE, TRUE)));
+                    $message_array = Outbox_messages::find('all', array('limit'=>$filter,'offset'=>0,'conditions'=> array(' spam = ? and deleted != ?', TRUE, TRUE)));
                     $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where spam = TRUE and deleted != TRUE');
                     break;
                 case 'trash':
-                    $message_array = Outbox_messages::find('all', array('conditions'=> array(' deleted = ? and spam != ? ', TRUE, TRUE)));
+                    $message_array = Outbox_messages::find('all', array('limit'=>$filter,'offset'=>0,'conditions'=> array(' deleted = ? and spam != ? ', TRUE, TRUE)));
                     $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where deleted = TRUE and spam != TRUE');
                     break;
                 
@@ -239,7 +263,7 @@ function load_message_list($mode = NULL){
             }
             
 
-            $display_counter = ($message_count[0]->message_number > 0) ? 1 . " - " . $message_count[0]->message_number . " of ". $message_count[0]->message_number : NULL;
+            $display_counter = ($message_count[0]->message_number > 0) ? 1 . " - " . $filter . " of ". $message_count[0]->message_number : NULL;
 
             if ($message_array) {
                  foreach($message_array as $key => $value){
@@ -248,17 +272,25 @@ function load_message_list($mode = NULL){
                             $marker = ($value->status == "new")? '<i class="fa fa-envelope"></i> &nbsp;': '<i class="icon-envelope-open"></i> &nbsp;';
                             $attachment = ($value->attachment)? '<i class="fa fa-paperclip"></i>': NULL;
                             
-                            $messages ='<tr class="' . $status . ' col-message" data-messageid="'.$value->id.'">
+                            $sender = explode("<", trim($value->sender));
+         
+                             if (count($sender)  > 1 ) {
+                                 $sender_display = $sender[0];
+                             } else {
+                                 $sender_display = $sender[0];
+                             }
+
+                            $messages ='<tr class="' . $status . ' col-message" data-messageid="'.$value->view_id.'">
                                <td class="inbox-small-cells">
                                 <label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">
-                                    <input type="checkbox" class="mail-checkbox" name="mails[]" value="'.$value->id.'" />
+                                    <input type="checkbox" class="mail-checkbox" name="mails[]" value="'.$value->view_id.'" />
                                     <span></span>
                                 </label>
                             </td>
                             <td class="inbox-small-cells">
-                                <i class="fa fa-star '. $star .' star-marker" data-id="'.$value->id.'"></i>
+                                <i class="fa fa-star '. $star .' star-marker" data-id="'.$value->view_id.'"></i>
                             </td>
-                            <td class="view-message hidden-xs">'. $marker . $value->sender .'</td>
+                            <td class="view-message hidden-xs">'. $marker . $sender_display .'</td>
                             <td class="view-message ">'. $value->subject .'</td>
                             <td class="view-message inbox-small-cells">'. $attachment .'</td>
                             <td class="view-message"  style="width: 130px;">'. date_format(date_create($value->time), "M. d, Y H:i:s a") .'</td>
@@ -270,64 +302,7 @@ function load_message_list($mode = NULL){
 
             }
             
-            $records = '<table class="table table-bordered table-striped table-advance table-hover">
-                    <thead>
-                        <tr>
-                            <th colspan="3">
-                                <label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">
-                                    <input type="checkbox" class="mail-group-checkbox" />
-                                    <span></span>
-                                </label>
-                                <div class="btn-group input-actions">
-                                    <a class="btn btn-sm blue btn-outline dropdown-toggle sbold" href="javascript:;" data-toggle="dropdown"> Actions
-                                        <i class="fa fa-angle-down"></i>
-                                    </a>
-                                    <ul class="dropdown-menu list-actions">
-                                        <li>
-                                            <a href="'.base_url().'messages/bulk_action/important">
-                                                <i class="fa fa-star"></i> Mark as Important </a>
-                                        </li>
-                                        <li>
-                                            <a href="'.base_url().'messages/bulk_action/read">
-                                                <i class="icon-envelope-open"></i> Mark as Read </a>
-                                        </li>
-                                        <li>
-                                            <a href="'.base_url().'messages/bulk_action/unread">
-                                                <i class="fa fa-envelope"></i> Mark as Unread </a>
-                                        </li>
-                                        <li>
-                                            <a href="'.base_url().'messages/bulk_action/spam">
-                                                <i class="fa fa-ban"></i> Mark as Spam </a>
-                                        </li>
-                                        <li class="divider"> </li>
-                                        <li>
-                                            <a href="'.base_url().'messages/bulk_action/delete">
-                                                <i class="fa fa-trash-o"></i> Delete </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                               
-                               <select name="accounts_length" class="form-control input-xs input-sm input-inline">
-                                   <option value="10">10</option>
-                                   <option value="20">20</option>
-                                   <option value="50">50</option>
-                                   <option value="100">100</option>
-                                   <option value="150">150</option>
-                               </select> messages per page.
-                            </th>
-                            <th class="pagination-control" colspan="3">
-                                <span class="pagination-info">' . $display_counter . '</span>
-                                <a class="btn btn-sm blue btn-outline">
-                                    <i class="fa fa-angle-left"></i>
-                                </a>
-                                <a class="btn btn-sm blue btn-outline">
-                                    <i class="fa fa-angle-right"></i>
-                                </a>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>'. $messages .'</tbody>
-                    </table>';  
+            $records = $messages;  
 
          $this->output->set_content_type('text/html')->set_output($records);
 
@@ -336,104 +311,113 @@ function load_message_list($mode = NULL){
     }
 }
 
-function view_message(){
-    if ( $this->user && $this->input->is_ajax_request() ) {
-         $this->theme_view = '';
-         $message_array = Outbox_messages::find_by_id($this->input->get('message_id'));
-         $message_array->status = "read";
-         $message_array->save();
+function view_message($id = NULL){
+        
+        if ( $this->user && $this->input->is_ajax_request() ) {
+             $this->theme_view = '';
+             $message_array = Outbox_messages::find_by_view_id($this->input->get('message_id'));
+             
+             if($message_array){
+                  $message_array->status = "read";
+                  $message_array->save();
 
-         $sender = explode("<", trim($message_array->sender));
-         
-         if (count($sender)  > 1 ) {
-             $sender_display = '<span class="sbold">' . $sender[0] . '</span> <span> &#60;'. $sender[1] .'</span>';
-         } else {
-             $sender_display = '<span class="sbold">' . $sender[0] . '</span>';
-         }
+             } else {
+                show_404();
+             }
 
-         $return_this = '<div class="inbox-header inbox-view-header">
-                        <h1 class="pull-left">'. $message_array->subject . '</h1>
-                    </div>
-                    <div class="inbox-view-info">
-                        <div class="row">
-                            <div class="col-md-7">
-                                <img src="'.base_url().'files/media/avatars/no-pic.png" width="7%" class="inbox-author">
-                                ' . $sender_display . ' to
-                                <span class="sbold"> me </span> on '. date_format(date_create($message_array->time), "M. d, Y h:i:s a") .'</div>
-                            <div class="col-md-5 inbox-info-btn">
-                                <div class="btn-group">
-                                    <button data-messageid="'.$message_array->id.'" class="btn green reply-btn">
-                                        <i class="fa fa-reply"></i> Reply
-                                        <i class="fa fa-angle-down"></i>
-                                    </button>
-                                    <ul class="dropdown-menu pull-right">
-                                        <li>
-                                            <a href="javascript:;" data-messageid="'.$message_array->id.'" class="reply-btn">
-                                                <i class="fa fa-reply"></i> Reply </a>
-                                        </li>
-                                        <li>
-                                            <a href="javascript:;">
-                                                <i class="fa fa-arrow-right reply-btn"></i> Forward </a>
-                                        </li>
-                                        <li>
-                                            <a href="javascript:;">
-                                                <i class="fa fa-print"></i> Print </a>
-                                        </li>
-                                        <li class="divider"> </li>
-                                        <li>
-                                            <a href="javascript:;">
-                                                <i class="fa fa-ban"></i> Spam </a>
-                                        </li>
-                                        <li>
-                                            <a href="javascript:;">
-                                                <i class="fa fa-trash-o"></i> Delete </a>
-                                        </li>
-                                        <li>
+             $sender = explode("<", trim($message_array->sender));
+             
+             if (count($sender)  > 1 ) {
+                 $sender_display = '<span class="sbold">' . $sender[0] . '</span> <span> &#60;'. $sender[1] .'</span>';
+             } else {
+                 $sender_display = '<span class="sbold">' . $sender[0] . '</span>';
+             }
+
+             $return_this = '<div class="inbox-header inbox-view-header">
+                            <h1 class="pull-left">'. $message_array->subject . '</h1>
+                        </div>
+                        <div class="inbox-view-info">
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <img src="'.base_url().'files/media/avatars/no-pic.png" width="7%" class="inbox-author">
+                                    ' . $sender_display . ' to
+                                    <span class="sbold"> me </span> on '. date_format(date_create($message_array->time), "M. d, Y h:i:s a") .'</div>
+                                <div class="col-md-5 inbox-info-btn">
+                                    <div class="btn-group">
+                                        <button data-messageid="'.$message_array->view_id.'" class="btn green reply-btn">
+                                            <i class="fa fa-reply"></i> Reply
+                                            <i class="fa fa-angle-down"></i>
+                                        </button>
+                                        <ul class="dropdown-menu pull-right">
+                                            <li>
+                                                <a href="javascript:;" data-messageid="'.$message_array->view_id.'" class="reply-btn">
+                                                    <i class="fa fa-reply"></i> Reply </a>
+                                            </li>
+                                            <li>
+                                                <a href="javascript:;">
+                                                    <i class="fa fa-arrow-right reply-btn"></i> Forward </a>
+                                            </li>
+                                            <li>
+                                                <a href="javascript:;">
+                                                    <i class="fa fa-print"></i> Print </a>
+                                            </li>
+                                            <li class="divider"> </li>
+                                            <li>
+                                                <a href="javascript:;">
+                                                    <i class="fa fa-ban"></i> Spam </a>
+                                            </li>
+                                            <li>
+                                                <a href="javascript:;">
+                                                    <i class="fa fa-trash-o"></i> Delete </a>
+                                            </li>
+                                            <li>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="inbox-view">'
-                     . $message_array->message .   
-                    '</div>';
-                    
-                    if ($message_array->attachment) {
-                        $return_this = $return_this . '<hr>
-                    <div class="inbox-attached">
-                        <div class="margin-bottom-15">
-                            <span>attachments — </span>
-                            <a href="javascript:;">Download all attachments </a>
-                            <a href="javascript:;">View all images </a>
-                        </div>
-                        <div class="margin-bottom-25">
-                            <img src="'.base_url().'assets/pages/media/gallery/image4.jpg">
-                            <div>
-                                <strong>image4.jpg</strong>
-                                <span>173K </span>
-                                <a href="javascript:;">View </a>
-                                <a href="javascript:;">Download </a>
+                        <div class="inbox-view">'
+                         . $message_array->message .   
+                        '</div>';
+                        
+                        if ($message_array->attachment) {
+                            $return_this = $return_this . '<hr>
+                        <div class="inbox-attached">
+                            <div class="margin-bottom-15">
+                                <span>attachments — </span>
+                                <a href="javascript:;">Download all attachments </a>
+                                <a href="javascript:;">View all images </a>
                             </div>
                             <div class="margin-bottom-25">
-                                <img src="'.base_url().'assets/pages/media/gallery/image3.jpg">
+                                <img src="'.base_url().'assets/pages/media/gallery/image4.jpg">
                                 <div>
-                                    <strong>IMAG0705.jpg</strong>
-                                    <span>14K </span>
+                                    <strong>image4.jpg</strong>
+                                    <span>173K </span>
                                     <a href="javascript:;">View </a>
                                     <a href="javascript:;">Download </a>
                                 </div>
-                            </div>
-                            <div class="margin-bottom-25">
-                                <img src="'.base_url().'assets/pages/media/gallery/image5.jpg">
-                                <div>
-                                    <strong>test.jpg</strong>
-                                    <span>132K </span>
-                                    <a href="javascript:;">View </a>
-                                    <a href="javascript:;">Download </a>
+                                <div class="margin-bottom-25">
+                                    <img src="'.base_url().'assets/pages/media/gallery/image3.jpg">
+                                    <div>
+                                        <strong>IMAG0705.jpg</strong>
+                                        <span>14K </span>
+                                        <a href="javascript:;">View </a>
+                                        <a href="javascript:;">Download </a>
+                                    </div>
                                 </div>
-                            </div>';
-                    }
+                                <div class="margin-bottom-25">
+                                    <img src="'.base_url().'assets/pages/media/gallery/image5.jpg">
+                                    <div>
+                                        <strong>test.jpg</strong>
+                                        <span>132K </span>
+                                        <a href="javascript:;">View </a>
+                                        <a href="javascript:;">Download </a>
+                                    </div>
+                                </div>';
+                        }
 
-        $this->output->set_content_type('text/html')->set_output($return_this);
+            $this->output->set_content_type('text/html')->set_output($return_this);
+    } else {
+        show_404();
     }
 }
 
@@ -453,7 +437,7 @@ function check_counters(){
                       $moment = time_ago($unix, false);
 
                       $messages =  '<li>
-                            <a href="#">
+                            <a href="'.base_url().'messages?a=view&msg='.$value->view_id.'">
                                 <span class="photo">
                                     <img src="' . base_url() . 'files/media/avatars/no-pic.png" class="img-circle" alt=""> </span>
                                 <span class="subject">
@@ -471,6 +455,9 @@ function check_counters(){
 
         $message_count_inbox = $this->check_message();
         $return_data['inbox'] = $message_count_inbox[0]->message_number;
+
+        $message_count_inbox_all = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where deleted != TRUE and spam != TRUE');
+        $return_data['inbox_all'] = $message_count_inbox_all[0]->message_number;
 
         $message_count_trash = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where deleted = TRUE');
         $return_data['trash'] = $message_count_trash[0]->message_number;

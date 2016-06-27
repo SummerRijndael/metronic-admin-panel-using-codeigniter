@@ -164,69 +164,6 @@ Website: http://www.linktech.com.ph/
                                                         </span> Server #12 overloaded. </span>
                                                 </a>
                                             </li>
-                                            <li>
-                                                <a href="javascript:;">
-                                                    <span class="time">10 mins</span>
-                                                    <span class="details">
-                                                        <span class="label label-sm label-icon label-warning">
-                                                            <i class="fa fa-bell-o"></i>
-                                                        </span> Server #2 not responding. </span>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:;">
-                                                    <span class="time">14 hrs</span>
-                                                    <span class="details">
-                                                        <span class="label label-sm label-icon label-info">
-                                                            <i class="fa fa-bullhorn"></i>
-                                                        </span> Application error. </span>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:;">
-                                                    <span class="time">2 days</span>
-                                                    <span class="details">
-                                                        <span class="label label-sm label-icon label-danger">
-                                                            <i class="fa fa-bolt"></i>
-                                                        </span> Database overloaded 68%. </span>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:;">
-                                                    <span class="time">3 days</span>
-                                                    <span class="details">
-                                                        <span class="label label-sm label-icon label-danger">
-                                                            <i class="fa fa-bolt"></i>
-                                                        </span> A user IP blocked. </span>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:;">
-                                                    <span class="time">4 days</span>
-                                                    <span class="details">
-                                                        <span class="label label-sm label-icon label-warning">
-                                                            <i class="fa fa-bell-o"></i>
-                                                        </span> Storage Server #4 not responding dfdfdfd. </span>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:;">
-                                                    <span class="time">5 days</span>
-                                                    <span class="details">
-                                                        <span class="label label-sm label-icon label-info">
-                                                            <i class="fa fa-bullhorn"></i>
-                                                        </span> System Error. </span>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:;">
-                                                    <span class="time">9 days</span>
-                                                    <span class="details">
-                                                        <span class="label label-sm label-icon label-danger">
-                                                            <i class="fa fa-bolt"></i>
-                                                        </span> Storage server failed. </span>
-                                                </a>
-                                            </li>
                                         </ul>
                                     </li>
                                 </ul>
@@ -237,7 +174,7 @@ Website: http://www.linktech.com.ph/
                             <li class="dropdown dropdown-extended dropdown-inbox" id="header_inbox_bar">
                                 <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
                                     <i class="icon-envelope-open"></i> 
-                                    <span class="badge badge-default message-counter"> <?=($messages_new > 0)? $messages_new : NULL;?> </span>
+                                    <span class="badge badge-default <?=($messages_new > 0)? NULL : 'display-none';?> message-counter"><?=($messages_new > 0)? $messages_new : NULL;?> </span>
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li class="external">
@@ -252,7 +189,7 @@ Website: http://www.linktech.com.ph/
                                         <ul class="dropdown-menu-list scroller message-peeker" style="height: 250px;" data-handle-color="#637283">
                                         <?php foreach($messages_list as $key => $value):?>
                                             <li>
-                                                <a href="#">
+                                                <a href="<?=base_url().'messages?a=view&msg='.$value->view_id;?>">
                                                     <span class="photo">
                                                         <img src="<?=base_url();?>files/media/avatars/no-pic.png" class="img-circle" alt=""> </span>
                                                     <span class="subject">
@@ -640,18 +577,10 @@ Website: http://www.linktech.com.ph/
         <script src="<?=base_url();?>assets/layouts/global/scripts/quick-sidebar.min.js" type="text/javascript"></script>
         <!-- END THEME LAYOUT SCRIPTS -->
         
-        <?php if($act_uri === "main_settings"):?>
         <script type="text/javascript">
             $('#settings_about').summernote({height: 300});
-            $('form').validate();
-
-           /* $('input[name=maintenance]').click(function() {
-                $("#settings_about").toggle(this.checked);
-            }); */
-
         </script>
-        <?php endif;?>
-
+        
         <?php if($act_uri === "accounts" && $act_uri_submenu === "edit"):?>
         <script type="text/javascript">
             $('form').validate();
@@ -660,8 +589,6 @@ Website: http://www.linktech.com.ph/
                 var that = "#"+this.id+"_sub_child";
                 $(that).toggle(this.checked);
                 
-                console.log($(that).attr("class"));
-                console.log(that);
             });
 
         </script>
