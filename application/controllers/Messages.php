@@ -37,7 +37,7 @@ function waga(){
             //print_r(explode("<", "Google <no-reply@accounts.google.com>"));
             //exit();
             $emailconfig = Setting::first();
-
+            set_time_limit(0);
             // this shows basic IMAP, no TLS required
             $config['login'] = $emailconfig->mailbox_username;
             $config['pass'] = $emailconfig->mailbox_password;
@@ -78,15 +78,15 @@ function waga(){
 
                 foreach($id_array as $email_id){
                     $email_object = $this->peeker->get_message($email_id);
-                    $email_object->rewrite_html_transform_img_tags('files/media/attachments/');
+                    $email_object->rewrite_html_transform_img_tags('files/media/email_files/');
                     $attachment = ($email_object->has_attachment())? TRUE: FALSE;
-
-                    //Attachments
-                    $parts = $email_object->get_parts_array();
-                    $email_attachment = array();
-                    if($email_object->has_attachment()){
+                    
+                    if($attachment){
+                        //Attachments
+                        $parts = $email_object->get_parts_array();
+                        $email_attachment = array();
+                       
                         foreach ($parts as $part){
-
                             $savename = $email_object->get_fingerprint().random_string('alnum', 8).$part->get_filename();
                             $savename = str_replace(' ','_',$savename); $savename = str_replace('%20','_',$savename);
                             $savename = preg_replace("([^\w\s\d\-_~,;:\[\]\(\).])", '', $savename);
@@ -95,8 +95,8 @@ function waga(){
                             $orgname = $part->get_filename();
                             $orgname = str_replace(' ','_',$orgname); $orgname = str_replace('%20','_',$orgname);
                             $part->filename = $savename;
-                            $attributes = array('article_id' => 1, 'filename' => $orgname, 'savename' => $savename);
-                            //$attachment = ArticleHasAttachment::create($attributes);
+                            $attributes = array('article_id' => $email_id, 'filename' => $orgname, 'savename' => $savename);
+                            $attachment_temp = ArticleHasAttachment::create($attributes);
                             $email_attachment[] = "files/media/attachments/".$savename;
                         }
                         $email_object->save_all_attachments('files/media/attachments/');
@@ -108,10 +108,12 @@ function waga(){
                     $details['subject'] = $email_object->get_subject();
                     
                     if ($email_object->has_PLAIN_not_HTML()) {
-                        $details['message'] = $email_object->get_plain();    
+                        $details['message'] = nl2br($email_object->get_plain());    
                     } else {
                         $details['message'] = $email_object->get_html();    
                     }
+                    
+                    iconv(mb_detect_encoding($details['message'], mb_detect_order(), true), "UTF-8", $details['message']);
                     
                     $details['attachment'] = $attachment;
                     //$details['headers'] = $email_object->get_header_array();
