@@ -85,7 +85,7 @@
                                                            <option value="50">50</option>
                                                            <option value="100">100</option>
                                                            <option value="150">150</option>
-                                                       </select> messages per pages.
+                                                       </select> messages per page.
                                                     </th>
                                                     <th class="pagination-control" colspan="3">
                                                         <span class="pagination-info"></span>

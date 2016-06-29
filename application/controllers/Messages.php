@@ -95,7 +95,9 @@ function waga(){
                             $orgname = $part->get_filename();
                             $orgname = str_replace(' ','_',$orgname); $orgname = str_replace('%20','_',$orgname);
                             $part->filename = $savename;
-                            $attributes = array('article_id' => $email_id, 'filename' => $orgname, 'savename' => $savename);
+                            $filetype = $part->get_subtype();
+                            $size = $part->get_bytes();
+                            $attributes = array('article_id' => $email_id, 'filename' => $orgname, 'filetype'=>$filetype, 'size'=>$size, 'savename' => $savename);
                             $attachment_temp = ArticleHasAttachment::create($attributes);
                             $email_attachment[] = "files/media/attachments/".$savename;
                         }
@@ -104,8 +106,12 @@ function waga(){
 
                     $details['status'] = 'new';
                     $details['time'] = $email_object->get_date();
+                    $details['recipient'] = $email_object->get_to();
+                    $details['reply_to'] = $email_object->get_reply_to();
                     $details['sender'] = $email_object->get_from();
-                    $details['subject'] = $email_object->get_subject();
+                    $details['cc'] = $email_object->get_cc();
+                    $details['bcc'] = $email_object->get_bcc();
+                    $details['subject'] = ($email_object->get_subject())? $email_object->get_subject(): '(no subject)';
                     
                     if ($email_object->has_PLAIN_not_HTML()) {
                         $details['message'] = nl2br($email_object->get_plain());    
@@ -147,6 +153,136 @@ function mark(){
          $message->save();
 
          $this->output->set_content_type('application/json')->set_output(json_encode($reply));
+    }
+}
+
+function load_reply(){
+            
+         if ( $this->user && $this->input->is_ajax_request() ) {
+             $this->theme_view = '';
+             $message_array = Outbox_messages::find_by_view_id($this->input->get('message_id'));
+             
+             if(!$message_array){
+                show_404();
+             }
+
+             $sender = explode("<", trim($message_array->sender));
+             
+             if (count($sender)  > 1 ) {
+                 $sender_display = str_replace(">", '', $sender[1]);
+             } else {
+                 $sender_display = str_replace(">", '', $sender[0]);
+             }
+          $reply = '<form class="inbox-compose form-horizontal" id="fileupload" action="#" method="POST" enctype="multipart/form-data">
+            <div class="inbox-compose-btn">
+                <button class="btn green">
+                    <i class="fa fa-check"></i>Send</button>
+                <button class="btn default">Discard</button>
+                <button class="btn default">Draft</button>
+            </div>
+            <div class="inbox-form-group mail-to">
+                <label class="control-label">To:</label>
+                <div class="controls controls-to">
+                    <input type="text" class="form-control" name="to" value="'.$sender_display.'">
+                    <span class="inbox-cc-bcc">
+                        <span class="inbox-cc " style="display:none"> Cc </span>
+                        <span class="inbox-bcc"> Bcc </span>
+                    </span>
+                </div>
+            </div>
+            <div class="inbox-form-group input-cc">
+                <a href="javascript:;" class="close"> </a>
+                <label class="control-label">Cc:</label>
+                <div class="controls controls-cc">
+                    <input type="text" name="cc" class="form-control" value="jhon.doe@gmail.com, kevin.larsen@gmail.com"> </div>
+            </div>
+            <div class="inbox-form-group input-bcc display-hide">
+                <a href="javascript:;" class="close"> </a>
+                <label class="control-label">Bcc:</label>
+                <div class="controls controls-bcc">
+                    <input type="text" name="bcc" class="form-control"> </div>
+            </div>
+            <div class="inbox-form-group">
+                <label class="control-label">Subject:</label>
+                <div class="controls">
+                    <input type="text" class="form-control" name="subject" value="'.$message_array->subject.'"> </div>
+            </div>
+            <div class="inbox-form-group">
+                <div class="controls-row">
+                    <textarea class="inbox-editor inbox-wysihtml5 form-control" name="message" rows="12"></textarea>
+                    <!--blockquote content for reply message, the inner html of reply_email_content_body element will be appended into wysiwyg body. Please refer Inbox.js loadReply() function. -->
+                    <div id="reply_email_content_body" class="hide">
+                        <blockquote>'.$message_array->message.'</blockquote>
+                    </div>
+                </div>
+            </div>
+            <div class="inbox-compose-attachment">
+                <!-- The fileupload-buttonbar contains buttons to add/delete files and start/cancel the upload -->
+                <span class="btn green btn-outline  fileinput-button">
+                    <i class="fa fa-plus"></i>
+                    <span> Add files... </span>
+                    <input type="file" name="files[]" multiple> </span>
+                <!-- The table listing the files available for upload/download -->
+                <table role="presentation" class="table table-striped margin-top-10">
+                    <tbody class="files"> </tbody>
+                </table>
+            </div>
+            <script id="template-upload" type="text/x-tmpl"> {% for (var i=0, file; file=o.files[i]; i++) { %}
+                <tr class="template-upload fade">
+                    <td class="name" width="30%">
+                        <span>{%=file.name%}</span>
+                    </td>
+                    <td class="size" width="40%">
+                        <span>{%=o.formatFileSize(file.size)%}</span>
+                    </td> {% if (file.error) { %}
+                    <td class="error" width="20%" colspan="2">
+                        <span class="label label-danger">Error</span> {%=file.error%}</td> {% } else if (o.files.valid && !i) { %}
+                    <td>
+                        <p class="size">{%=o.formatFileSize(file.size)%}</p>
+                        <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                            <div class="progress-bar progress-bar-success" style="width:0%;"></div>
+                        </div>
+                    </td> {% } else { %}
+                    <td colspan="2"></td> {% } %}
+                    <td class="cancel" width="10%" align="right">{% if (!i) { %}
+                        <button class="btn btn-sm red cancel">
+                            <i class="fa fa-ban"></i>
+                            <span>Cancel</span>
+                        </button> {% } %}</td>
+                </tr> {% } %} </script>
+            <!-- The template to display files available for download -->
+            <script id="template-download" type="text/x-tmpl"> {% for (var i=0, file; file=o.files[i]; i++) { %}
+                <tr class="template-download fade"> {% if (file.error) { %}
+                    <td class="name" width="30%">
+                        <span>{%=file.name%}</span>
+                    </td>
+                    <td class="size" width="40%">
+                        <span>{%=o.formatFileSize(file.size)%}</span>
+                    </td>
+                    <td class="error" width="30%" colspan="2">
+                        <span class="label label-danger">Error</span> {%=file.error%}</td> {% } else { %}
+                    <td class="name" width="30%">
+                        <a href="{%=file.url%}" title="{%=file.name%}" data-gallery="{%=file.thumbnail_url&&'. chr(39) . 'gallery' .chr(39) . '%}" download="{%=file.name%}">{%=file.name%}</a>
+                    </td>
+                    <td class="size" width="40%">
+                        <span>{%=o.formatFileSize(file.size)%}</span>
+                    </td>
+                    <td colspan="2"></td> {% } %}
+                    <td class="delete" width="10%" align="right">
+                        <button class="btn default btn-sm" data-type="{%=file.delete_type%}" data-url="{%=file.delete_url%}" {% if (file.delete_with_credentials) { %} data-xhr-fields='.chr(39).'{"withCredentials":true}'.chr(39).'{% } %}>
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </td>
+                </tr> {% } %} </script>
+            <div class="inbox-compose-btn">
+                <button class="btn green">
+                    <i class="fa fa-check"></i>Send</button>
+                <button class="btn default">Discard</button>
+                <button class="btn default">Draft</button>
+            </div>
+        </form>';
+
+        $this->output->set_content_type('text/html')->set_output($reply);
     }
 }
 
@@ -247,8 +383,8 @@ function load_message_list($mode = NULL){
                     $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where deleted != TRUE and spam != TRUE');
                     break;
                 case 'important':
-                    $message_array = Outbox_messages::find('all', array('limit'=>$filter,'offset'=>0,'conditions'=> array(' important = ?', TRUE)));
-                    $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where important = TRUE');
+                    $message_array = Outbox_messages::find('all', array('limit'=>$filter,'offset'=>0,'conditions'=> array(' important = ? and deleted != ? and spam != ?', TRUE,TRUE,TRUE)));
+                    $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where important = TRUE and deleted != TRUE and spam != TRUE');
                     break;
                 case 'spam':
                     $message_array = Outbox_messages::find('all', array('limit'=>$filter,'offset'=>0,'conditions'=> array(' spam = ? and deleted != ?', TRUE, TRUE)));
@@ -335,21 +471,26 @@ function view_message($id = NULL){
                  $sender_display = '<span class="sbold">' . $sender[0] . '</span>';
              }
 
+             $cc = ($message_array->cc)? '<br /><span> Cc: <i class="fa fa-angle-double-right"></i> ' . $message_array->cc .'</span>': NULL;
+
              $return_this = '<div class="inbox-header inbox-view-header">
                             <h1 class="pull-left">'. $message_array->subject . '</h1>
                         </div>
                         <div class="inbox-view-info">
                             <div class="row">
                                 <div class="col-md-7">
-                                    <img src="'.base_url().'files/media/avatars/no-pic.png" width="7%" class="inbox-author">
-                                    ' . $sender_display . ' to
-                                    <span class="sbold"> me </span> on '. date_format(date_create($message_array->time), "M. d, Y h:i:s a") .'</div>
+                                    To: <i class="fa fa-angle-double-right"></i>
+                                    <span class="sbold">' . $message_array->recipient . '</span> <br />
+                                    From: <i class="fa fa-angle-double-right"></i> ' . $sender_display . ' <br /> On: <i class="fa fa-angle-double-right"></i> '. date_format(date_create($message_array->time), "M. d, Y h:i:s a") .'
+                                    '. $cc .'
+
+                                </div>
                                 <div class="col-md-5 inbox-info-btn">
                                     <div class="btn-group">
-                                        <button data-messageid="'.$message_array->view_id.'" class="btn green reply-btn">
-                                            <i class="fa fa-reply"></i> Reply
+                                        <a class="btn btn-sm blue btn-outline dropdown-toggle sbold" href="javascript:;" data-toggle="dropdown"> Actions
                                             <i class="fa fa-angle-down"></i>
-                                        </button>
+                                        </a>
+
                                         <ul class="dropdown-menu pull-right">
                                             <li>
                                                 <a href="javascript:;" data-messageid="'.$message_array->view_id.'" class="reply-btn">
@@ -359,10 +500,7 @@ function view_message($id = NULL){
                                                 <a href="javascript:;">
                                                     <i class="fa fa-arrow-right reply-btn"></i> Forward </a>
                                             </li>
-                                            <li>
-                                                <a href="javascript:;">
-                                                    <i class="fa fa-print"></i> Print </a>
-                                            </li>
+                            
                                             <li class="divider"> </li>
                                             <li>
                                                 <a href="javascript:;">
@@ -372,7 +510,7 @@ function view_message($id = NULL){
                                                 <a href="javascript:;">
                                                     <i class="fa fa-trash-o"></i> Delete </a>
                                             </li>
-                                            <li>
+                                         </ul>
                                     </div>
                                 </div>
                             </div>
@@ -382,39 +520,70 @@ function view_message($id = NULL){
                         '</div>';
                         
                         if ($message_array->attachment) {
+                            $attachment_array = ArticleHasAttachment::find('all', array('conditions'=> array(' article_id = ?', $message_array->id)));
+
+                              function formatSizeUnits($bytes)
+                                    {
+                                        if ($bytes >= 1073741824)
+                                        {
+                                            $bytes = number_format($bytes / 1073741824, 2) . ' GB';
+                                        }
+                                        elseif ($bytes >= 1048576)
+                                        {
+                                            $bytes = number_format($bytes / 1048576, 2) . ' MB';
+                                        }
+                                        elseif ($bytes >= 1024)
+                                        {
+                                            $bytes = number_format($bytes / 1024, 2) . ' KB';
+                                        }
+                                        elseif ($bytes > 1)
+                                        {
+                                            $bytes = $bytes . ' bytes';
+                                        }
+                                        elseif ($bytes == 1)
+                                        {
+                                            $bytes = $bytes . ' byte';
+                                        }
+                                        else
+                                        {
+                                            $bytes = '0 bytes';
+                                        }
+
+                                        return $bytes;
+                                }
+
+                            $files = '';
+                            foreach ($attachment_array as $key => $value) {
+                                $size = formatSizeUnits(intval($value->size));
+                                $types = array('png', 'jpg', 'gif', 'bmp');
+
+                                if (in_array($value->filetype, $types)) {
+                                    $files = '<div class="margin-bottom-25">
+                                            <img src="'.base_url().'files/media/attachments/'.$value->savename.'">
+                                          </div>
+                                          <div>
+                                                <strong>File name: '.$value->filename.'</strong>
+                                                <span>'.$size.'</span>
+                                                <a href="javascript:;">View </a>
+                                                <a href="javascript:;">Download </a>
+                                         '.$files.'</div>';
+                                } else {
+                                    $files = '<div class="margin-bottom-25"></div>
+                                                <div>
+                                                    <strong>File name: '.$value->filename.'</strong>
+                                                    <span>'.$size.'</span>
+                                                    <a href="javascript:;">View </a>
+                                                    <a href="javascript:;">Download </a>
+                                             '.$files.'</div>';
+                                }
+                            }
+
                             $return_this = $return_this . '<hr>
-                        <div class="inbox-attached">
-                            <div class="margin-bottom-15">
-                                <span>attachments — </span>
-                                <a href="javascript:;">Download all attachments </a>
-                                <a href="javascript:;">View all images </a>
-                            </div>
-                            <div class="margin-bottom-25">
-                                <img src="'.base_url().'assets/pages/media/gallery/image4.jpg">
-                                <div>
-                                    <strong>image4.jpg</strong>
-                                    <span>173K </span>
-                                    <a href="javascript:;">View </a>
-                                    <a href="javascript:;">Download </a>
-                                </div>
-                                <div class="margin-bottom-25">
-                                    <img src="'.base_url().'assets/pages/media/gallery/image3.jpg">
-                                    <div>
-                                        <strong>IMAG0705.jpg</strong>
-                                        <span>14K </span>
-                                        <a href="javascript:;">View </a>
-                                        <a href="javascript:;">Download </a>
-                                    </div>
-                                </div>
-                                <div class="margin-bottom-25">
-                                    <img src="'.base_url().'assets/pages/media/gallery/image5.jpg">
-                                    <div>
-                                        <strong>test.jpg</strong>
-                                        <span>132K </span>
-                                        <a href="javascript:;">View </a>
-                                        <a href="javascript:;">Download </a>
-                                    </div>
-                                </div>';
+                                            <div class="inbox-attached">
+                                                <div class="margin-bottom-15">
+                                                    <span>attachments — </span>
+                                                    <a href="javascript:;">Download all attachments </a>
+                                                </div>'.$files.'</div>';
                         }
 
             $this->output->set_content_type('text/html')->set_output($return_this);
