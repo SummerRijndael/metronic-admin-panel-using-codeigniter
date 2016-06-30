@@ -173,7 +173,7 @@ function load_reply(){
              } else {
                  $sender_display = str_replace(">", '', $sender[0]);
              }
-          $reply = '<form class="inbox-compose form-horizontal" id="fileupload" action="#" method="POST" enctype="multipart/form-data">
+          $reply = '<form class="inbox-compose form-horizontal" id="fileupload" action="'.base_url().'messages/send_mail" method="POST" enctype="multipart/form-data">
             <div class="inbox-compose-btn">
                 <button class="btn green">
                     <i class="fa fa-check"></i>Send</button>
@@ -190,11 +190,11 @@ function load_reply(){
                     </span>
                 </div>
             </div>
-            <div class="inbox-form-group input-cc">
+            <div class="inbox-form-group input-cc display-hide">
                 <a href="javascript:;" class="close"> </a>
                 <label class="control-label">Cc:</label>
-                <div class="controls controls-cc">
-                    <input type="text" name="cc" class="form-control" value="jhon.doe@gmail.com, kevin.larsen@gmail.com"> </div>
+                <div class="controls controls-bcc">
+                    <input type="text" name="cc" class="form-control"> </div>
             </div>
             <div class="inbox-form-group input-bcc display-hide">
                 <a href="javascript:;" class="close"> </a>
@@ -369,30 +369,68 @@ function load_message_list($mode = NULL){
     if ( $this->input->is_ajax_request() && $this->user) {
             
             if($this->input->get('filter')){
-                $filter = $this->input->get('filter');
+                $filter = intval($this->input->get('filter'));
             } else {
                 $filter = 10;
             }   
 
             $this->theme_view = '';
-            $messages = "";
 
             switch ($mode) {
                 case 'inbox':
-                    $message_array = Outbox_messages::find('all', array('limit'=>$filter,'offset'=>0,'conditions'=> array(' deleted != ? and spam != ?', TRUE, TRUE)));
                     $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where deleted != TRUE and spam != TRUE');
+
+                    $iTotalRecords = intval($message_count[0]->message_number);
+                    $iDisplayLength = $filter;
+                    $iDisplayLength = $iDisplayLength < 0 ? $iTotalRecords : $iDisplayLength; 
+                    $iDisplayStart = ($this->input->get('start'))? $this->input->get('start') : 0;
+
+                    $end = $iDisplayStart + $iDisplayLength;
+                    $end = $end > $iTotalRecords ? $iTotalRecords : $end;
+
+                    $message_array = Outbox_messages::find('all', array('limit'=>$iDisplayLength,'offset'=>$iDisplayStart,'conditions'=> array(' deleted != ? and spam != ?', TRUE, TRUE)));
                     break;
+
                 case 'important':
-                    $message_array = Outbox_messages::find('all', array('limit'=>$filter,'offset'=>0,'conditions'=> array(' important = ? and deleted != ? and spam != ?', TRUE,TRUE,TRUE)));
                     $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where important = TRUE and deleted != TRUE and spam != TRUE');
+
+                    $iTotalRecords = intval($message_count[0]->message_number);
+                    $iDisplayLength = $filter;
+                    $iDisplayLength = $iDisplayLength < 0 ? $iTotalRecords : $iDisplayLength; 
+                    $iDisplayStart = 0;
+
+                    $end = $iDisplayStart + $iDisplayLength;
+                    $end = $end > $iTotalRecords ? $iTotalRecords : $end;
+
+                    $message_array = Outbox_messages::find('all', array('limit'=>$iDisplayLength,'offset'=>$iDisplayStart,'conditions'=> array(' important = ? and deleted != ? and spam != ?', TRUE,TRUE,TRUE)));
                     break;
+
                 case 'spam':
-                    $message_array = Outbox_messages::find('all', array('limit'=>$filter,'offset'=>0,'conditions'=> array(' spam = ? and deleted != ?', TRUE, TRUE)));
                     $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where spam = TRUE and deleted != TRUE');
+
+                    $iTotalRecords = intval($message_count[0]->message_number);
+                    $iDisplayLength = $filter;
+                    $iDisplayLength = $iDisplayLength < 0 ? $iTotalRecords : $iDisplayLength; 
+                    $iDisplayStart = 0;
+
+                    $end = $iDisplayStart + $iDisplayLength;
+                    $end = $end > $iTotalRecords ? $iTotalRecords : $end;
+
+                    $message_array = Outbox_messages::find('all', array('limit'=>$iDisplayLength,'offset'=>$iDisplayStart,'conditions'=> array(' spam = ? and deleted != ?', TRUE, TRUE)));
                     break;
+
                 case 'trash':
-                    $message_array = Outbox_messages::find('all', array('limit'=>$filter,'offset'=>0,'conditions'=> array(' deleted = ? and spam != ? ', TRUE, TRUE)));
                     $message_count = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where deleted = TRUE and spam != TRUE');
+
+                    $iTotalRecords = intval($message_count[0]->message_number);
+                    $iDisplayLength = $filter;
+                    $iDisplayLength = $iDisplayLength < 0 ? $iTotalRecords : $iDisplayLength; 
+                    $iDisplayStart = 0;
+
+                    $end = $iDisplayStart + $iDisplayLength;
+                    $end = $end > $iTotalRecords ? $iTotalRecords : $end;
+
+                    $message_array = Outbox_messages::find('all', array('limit'=>$iDisplayLength,'offset'=>$iDisplayStart,'conditions'=> array(' deleted = ? and spam != ? ', TRUE, TRUE)));
                     break;
                 
                 default:
@@ -401,7 +439,11 @@ function load_message_list($mode = NULL){
             }
             
 
-            $display_counter = ($message_count[0]->message_number > 0) ? 1 . " - " . $filter . " of ". $message_count[0]->message_number : NULL;
+            //$display_counter = ($message_count[0]->message_number > 0) ? 1 . " - " . $filter . " of ". $message_count[0]->message_number : NULL;
+            
+            
+
+            $wrapper = array();
 
             if ($message_array) {
                  foreach($message_array as $key => $value){
@@ -418,31 +460,20 @@ function load_message_list($mode = NULL){
                                  $sender_display = $sender[0];
                              }
 
-                            $messages ='<tr class="' . $status . ' col-message" data-messageid="'.$value->view_id.'">
-                               <td class="inbox-small-cells">
-                                <label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">
-                                    <input type="checkbox" class="mail-checkbox" name="mails[]" value="'.$value->view_id.'" />
-                                    <span></span>
-                                </label>
-                            </td>
-                            <td class="inbox-small-cells">
-                                <i class="fa fa-star '. $star .' star-marker" data-id="'.$value->view_id.'"></i>
-                            </td>
-                            <td class="view-message hidden-xs">'. $marker . $sender_display .'</td>
-                            <td class="view-message ">'. $value->subject .'</td>
-                            <td class="view-message inbox-small-cells">'. $attachment .'</td>
-                            <td class="view-message"  style="width: 130px;">'. date_format(date_create($value->time), "M. d, Y H:i:s a") .'</td>
-                        </tr>'.$messages;
+                    $wrapper['data'][] = array( 
+                    
+                             '<tr class="' . $status . ' col-message" data-messageid="'.$value->view_id.'"><td class="inbox-small-cells"><label class="mt-checkbox mt-checkbox-single mt-checkbox-outline"><input type="checkbox" class="mail-checkbox" name="mails[]" value="'.$value->view_id.'" /><span></span></label></td>', '<td class="inbox-small-cells"><i class="fa fa-star '. $star .' star-marker" data-id="'.$value->view_id.'"></i></td>', 
+                             '<td class="view-message hidden-xs">'. $marker . $sender_display . '</td>','<td class="view-message ">'. $value->subject .'</td>', '<td class="view-message inbox-small-cells">'. $attachment .'</td> <td class="view-message"  style="width: 130px;">'. date_format(date_create($value->time), "M. d, Y H:i:s a") .'</td></tr>'
+                    );
+
                 }
                  
             } else {
                  $messages ='<tr><td class="text-center" colspan="4"><code>No messages found.</code></td></tr>';
 
             }
-            
-            $records = $messages;  
 
-         $this->output->set_content_type('text/html')->set_output($records);
+         $this->output->set_content_type('application/json')->set_output(json_encode($wrapper));
 
     } else {
         show_404();
@@ -648,7 +679,9 @@ function check_counters(){
 }
 
 function send_mail(){
-       $this->load->library('email');
+
+    if ($this->user) {
+        $this->load->library('email');
 
        $result = $this->email
                 ->from($this->user->email)
@@ -674,7 +707,7 @@ function send_mail(){
         }
                             
         redirect($this->agent->referrer());
-
+    }       
 }
 
 function load_composer(){

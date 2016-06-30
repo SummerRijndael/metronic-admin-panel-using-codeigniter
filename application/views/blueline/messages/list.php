@@ -89,10 +89,10 @@
                                                     </th>
                                                     <th class="pagination-control" colspan="3">
                                                         <span class="pagination-info"></span>
-                                                        <a class="btn btn-sm blue btn-outline">
+                                                        <a class="btn btn-sm blue btn-outline prev">
                                                             <i class="fa fa-angle-left"></i>
                                                         </a>
-                                                        <a class="btn btn-sm blue btn-outline">
+                                                        <a class="btn btn-sm blue btn-outline next">
                                                             <i class="fa fa-angle-right"></i>
                                                         </a>
                                                     </th>
@@ -104,7 +104,7 @@
                                             </table>  
                                             
                                             <div class="viewer">
-                                                <?=(isset($message))? $message: NULL; ?>
+                                               
                                             </div>
                                     </div>
                                 </div>
