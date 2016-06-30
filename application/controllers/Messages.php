@@ -383,7 +383,7 @@ function load_message_list($mode = NULL){
                     $iTotalRecords = intval($message_count[0]->message_number);
                     $iDisplayLength = $filter;
                     $iDisplayLength = $iDisplayLength < 0 ? $iTotalRecords : $iDisplayLength; 
-                    $iDisplayStart = ($this->input->get('start'))? $this->input->get('start') : 0;
+                    $iDisplayStart = ($this->input->get('start') >= 0)? $this->input->get('start') : 0;
 
                     $end = $iDisplayStart + $iDisplayLength;
                     $end = $end > $iTotalRecords ? $iTotalRecords : $end;
@@ -467,6 +467,9 @@ function load_message_list($mode = NULL){
                     );
 
                 }
+
+                $wrapper['total_records'] = $iTotalRecords;
+                $wrapper['records_end'] = $end;
                  
             } else {
                  $messages ='<tr><td class="text-center" colspan="4"><code>No messages found.</code></td></tr>';
@@ -657,9 +660,6 @@ function check_counters(){
 
         $message_count_inbox = $this->check_message();
         $return_data['inbox'] = $message_count_inbox[0]->message_number;
-
-        $message_count_inbox_all = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where deleted != TRUE and spam != TRUE');
-        $return_data['inbox_all'] = $message_count_inbox_all[0]->message_number;
 
         $message_count_trash = Outbox_messages::find_by_sql('select count(id) as message_number from outbox_messages where deleted = TRUE');
         $return_data['trash'] = $message_count_trash[0]->message_number;
