@@ -351,8 +351,18 @@ function load_message_list($mode = NULL){
                     $iTotalRecords = intval($message_count[0]->message_number);
                     $iDisplayLength = $filter;
                     $iDisplayLength = $iDisplayLength < 0 ? $iTotalRecords : $iDisplayLength; 
-                    $iDisplayStart = ($this->input->get('start') >= 0)? $this->input->get('start') : 0;
+                    
+                    $total_pages = ceil($iTotalRecords / $filter);
 
+                    if ( $this->input->get('page') <= $total_pages && $this->input->get('page') > 0 ) {
+                       $iDisplayStart = (intval($this->input->get('page')) - 1) * $filter; 
+
+                    } else {
+                       $iDisplayStart = ($this->input->get('start') > 0)? $this->input->get('start')  - 1 : 0;
+                    
+                    }
+
+                    $current_page = ceil($iDisplayStart / $filter + 1);
                     $end = $iDisplayStart + $iDisplayLength;
                     $end = $end > $iTotalRecords ? $iTotalRecords : $end;
 
@@ -365,8 +375,19 @@ function load_message_list($mode = NULL){
                     $iTotalRecords = intval($message_count[0]->message_number);
                     $iDisplayLength = $filter;
                     $iDisplayLength = $iDisplayLength < 0 ? $iTotalRecords : $iDisplayLength; 
-                    $iDisplayStart = ($this->input->get('start') >= 0)? $this->input->get('start') : 0;
+                    $iDisplayStart = ($this->input->get('start') > 0)? $this->input->get('start')  - 1 : 0;
 
+                    $total_pages = ceil($iTotalRecords / $filter);
+                 
+                    if ( $this->input->get('page') <= $total_pages && $this->input->get('page') > 0 ) {
+                       $iDisplayStart = (intval($this->input->get('page')) - 1) * $filter;  
+
+                    } else {
+                       $iDisplayStart = ($this->input->get('start') > 0)? $this->input->get('start')  - 1 : 0;
+                    
+                    }
+
+                    $current_page = ceil($iDisplayStart / $filter + 1);
                     $end = $iDisplayStart + $iDisplayLength;
                     $end = $end > $iTotalRecords ? $iTotalRecords : $end;
 
@@ -379,8 +400,20 @@ function load_message_list($mode = NULL){
                     $iTotalRecords = intval($message_count[0]->message_number);
                     $iDisplayLength = $filter;
                     $iDisplayLength = $iDisplayLength < 0 ? $iTotalRecords : $iDisplayLength; 
-                    $iDisplayStart = ($this->input->get('start') >= 0)? $this->input->get('start') : 0;
+                    $iDisplayStart = ($this->input->get('start') > 0)? $this->input->get('start')  - 1 : 0;
+                   
+                    $total_pages = ceil($iTotalRecords / $filter);
+                   
 
+                    if ( $this->input->get('page') <= $total_pages && $this->input->get('page') > 0 ) {
+                       $iDisplayStart = (intval($this->input->get('page')) - 1) * $filter; 
+
+                    } else {
+                       $iDisplayStart = ($this->input->get('start') > 0)? $this->input->get('start')  - 1 : 0;
+                    
+                    }
+                    
+                    $current_page = ceil($iDisplayStart / $filter + 1);
                     $end = $iDisplayStart + $iDisplayLength;
                     $end = $end > $iTotalRecords ? $iTotalRecords : $end;
 
@@ -393,8 +426,19 @@ function load_message_list($mode = NULL){
                     $iTotalRecords = intval($message_count[0]->message_number);
                     $iDisplayLength = $filter;
                     $iDisplayLength = $iDisplayLength < 0 ? $iTotalRecords : $iDisplayLength; 
-                    $iDisplayStart = ($this->input->get('start') >= 0)? $this->input->get('start') : 0;
+                    $iDisplayStart = ($this->input->get('start') > 0)? $this->input->get('start')  - 1 : 0;
+                    
+                    $total_pages = ceil($iTotalRecords / $filter);
 
+                    if ( $this->input->get('page') <= $total_pages && $this->input->get('page') > 0 ) {
+                        $iDisplayStart = (intval($this->input->get('page')) - 1) * $filter; 
+
+                    } else {
+                       $iDisplayStart = ($this->input->get('start') > 0)? $this->input->get('start')  - 1 : 0;
+                    
+                    }
+
+                    $current_page = ceil($iDisplayStart / $filter + 1);
                     $end = $iDisplayStart + $iDisplayLength;
                     $end = $end > $iTotalRecords ? $iTotalRecords : $end;
 
@@ -405,11 +449,6 @@ function load_message_list($mode = NULL){
                     # code...
                     break;
             }
-            
-
-            //$display_counter = ($message_count[0]->message_number > 0) ? 1 . " - " . $filter . " of ". $message_count[0]->message_number : NULL;
-            
-            
 
             $wrapper = array();
 
@@ -436,6 +475,9 @@ function load_message_list($mode = NULL){
 
                 }
 
+                $wrapper['display_start'] = $iDisplayStart + 1;
+                $wrapper['total_pages'] = round($total_pages);
+                $wrapper['current_page'] = $current_page;
                 $wrapper['total_records'] = $iTotalRecords;
                 $wrapper['records_end'] = $end;
                  

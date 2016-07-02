@@ -45,7 +45,7 @@
                                         <table class="table table-bordered table-striped table-advance table-hover display-none">
                                             <thead>
                                                 <tr>
-                                                    <th colspan="4" style="width: 65em; min-width: 40%;">
+                                                    <th colspan="4" style="width: 55em;">
                                                         <label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">
                                                             <input type="checkbox" class="mail-group-checkbox" />
                                                             <span></span>
@@ -89,10 +89,13 @@
                                                     </th>
                                                     <th class="pagination-control" colspan="3">
                                                         <span class="pagination-info"></span>
-                                                        <a class="btn btn-sm blue btn-outline prev">
+                                                        <a class="btn btn-circle btn-sm blue btn-outline prev">
                                                             <i class="fa fa-angle-left"></i>
                                                         </a>
-                                                        <a class="btn btn-sm blue btn-outline next">
+                                                        
+                                                        <input type="text" class="pagination-panel-input form-control input-sm input-inline" style="text-align:center; margin: 0px; width: 9em;">
+
+                                                        <a class="btn btn-circle btn-sm blue btn-outline next">
                                                             <i class="fa fa-angle-right"></i>
                                                         </a>
                                                     </th>
