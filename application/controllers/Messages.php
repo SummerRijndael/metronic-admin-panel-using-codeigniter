@@ -30,112 +30,6 @@ class Messages extends MY_Controller {
         //$this->session->set_flashdata('message', 'success: message!');
 	}
 
-function waga(){
-            $this->load->helper('security');
-            $this->load->helper('string');
-            $this->theme_view = '';
-            //print_r(explode("<", "Google <no-reply@accounts.google.com>"));
-            //exit();
-            $emailconfig = Setting::first();
-            set_time_limit(0);
-            // this shows basic IMAP, no TLS required
-            $config['login'] = $emailconfig->mailbox_username;
-            $config['pass'] = $emailconfig->mailbox_password;
-            $config['host'] = $emailconfig->mailbox_host;
-            $config['port'] = $emailconfig->mailbox_port;
-            $config['mailbox'] = $emailconfig->mailbox_box;
-
-            if($emailconfig->mailbox_imap == "1"){$flags = "/imap";}else{$flags = "/pop3";}
-            if($emailconfig->mailbox_ssl == "1"){$flags .= "/ssl";}
-
-            $config['service_flags'] = $flags.$emailconfig->mailbox_flags;
-
-            $this->load->library('peeker', $config);
-            //attachment folder
-            $bool = $this->peeker->set_attachment_dir('files/media/email_files');
-            //Search Filter
-            $this->peeker->set_search($emailconfig->mailbox_search);
-            echo $this->peeker->search_and_count_messages();
-            
-            if ($this->peeker->search_and_count_messages() != "0"){
-                $id_array = $this->peeker->get_ids_from_search();
-                
-                //walk trough emails
-                $details = array(); 
-
-                  function reference(){
-                        $str = do_hash(random_string('md5', 40), 'sha1'); // MD5
-                        
-                        $ref_id = Outbox_messages::find_by_view_id($str);  
-
-                        if(!empty($ref_id)){
-                            reference();
-                        }
-                        else{
-                            return $str;
-                        }
-                    }               
-
-                foreach($id_array as $email_id){
-                    $email_object = $this->peeker->get_message($email_id);
-                    $email_object->rewrite_html_transform_img_tags('files/media/email_files/');
-                    $attachment = ($email_object->has_attachment())? TRUE: FALSE;
-                    
-                    if($attachment){
-                        //Attachments
-                        $parts = $email_object->get_parts_array();
-                        $email_attachment = array();
-                       
-                        foreach ($parts as $part){
-                            $savename = $email_object->get_fingerprint().random_string('alnum', 8).$part->get_filename();
-                            $savename = str_replace(' ','_',$savename); $savename = str_replace('%20','_',$savename);
-                            $savename = preg_replace("([^\w\s\d\-_~,;:\[\]\(\).])", '', $savename);
-                            // Remove any runs of periods
-                            $savename = preg_replace("([\.]{2,})", '', $savename);
-                            $orgname = $part->get_filename();
-                            $orgname = str_replace(' ','_',$orgname); $orgname = str_replace('%20','_',$orgname);
-                            $part->filename = $savename;
-                            $filetype = $part->get_subtype();
-                            $size = $part->get_bytes();
-                            $attributes = array('article_id' => $email_id, 'filename' => $orgname, 'filetype'=>$filetype, 'size'=>$size, 'savename' => $savename);
-                            $attachment_temp = ArticleHasAttachment::create($attributes);
-                            $email_attachment[] = "files/media/attachments/".$savename;
-                        }
-                        $email_object->save_all_attachments('files/media/attachments/');
-                    }
-
-                    $details['status'] = 'new';
-                    $details['time'] = $email_object->get_date();
-                    $details['recipient'] = $email_object->get_to();
-                    $details['reply_to'] = $email_object->get_reply_to();
-                    $details['sender'] = $email_object->get_from();
-                    $details['cc'] = $email_object->get_cc();
-                    $details['bcc'] = $email_object->get_bcc();
-                    $details['subject'] = ($email_object->get_subject())? $email_object->get_subject(): '(no subject)';
-                    
-                    if ($email_object->has_PLAIN_not_HTML()) {
-                        $details['message'] = nl2br($email_object->get_plain());    
-                    } else {
-                        $details['message'] = $email_object->get_html();    
-                    }
-                    
-                    iconv(mb_detect_encoding($details['message'], mb_detect_order(), true), "UTF-8", $details['message']);
-                    
-                    $details['attachment'] = $attachment;
-                    //$details['headers'] = $email_object->get_header_array();
-
-                    $reference = reference();
-                    $details['view_id'] = $reference;
-
-                    $outbox = Outbox_messages::create($details);
-                }
-            }
-
-            //print_r($details);
-            $this->peeker->close();
-            exit();
-}
-
 function mark(){
     $this->theme_view = '';
 
@@ -156,6 +50,80 @@ function mark(){
     }
 }
 
+
+
+function download($mode = NULL, $medianame = NULL){
+    if ($this->user) {
+        $this->theme_view = '';
+        $this->load->helper('download');
+        $this->load->helper('file');
+        $this->load->library('zip');
+
+        switch ($mode) {
+            case 'single':
+                        $media = ArticleHasAttachment::find_by_savename($medianame);
+ 
+                        $file = FCPATH . 'files/media/attachments/'.$media->savename;
+                        $mime = get_mime_by_extension($file);
+                        if(file_exists($file)) {
+                            header('Content-Description: File Transfer');
+                            header('Content-Type: '.$mime);
+                            header('Content-Disposition: attachment; filename='.basename($media->filename));
+                            header('Content-Transfer-Encoding: binary');
+                            header('Expires: 0');
+                            header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+                            header('Pragma: public');
+                            header('Content-Length: ' . filesize($file));
+                            readfile($file);
+                            @ob_clean();
+                            @flush();
+                            exit(); 
+
+                        } else {
+                            header('HTTP/1.1 500 Internal Server Error');
+                            @ob_clean();
+                            @flush();
+                            exit();
+                        }
+                break;
+            
+            case 'all':
+                        $temp = Outbox_messages::find_by_view_id($medianame);
+                        if ($temp) {
+                            $temp_file = ArticleHasAttachment::find('all', array('conditions'=> array('article_id = ? ', $temp->id)));
+                            $this->zip->compression_level = 4;
+                            
+                            foreach ($temp_file as $key => $value)
+                            {
+                                $this->zip->read_file(FCPATH . 'files/media/attachments/'.$value->savename, $value->filename);
+                                //echo $value->filename . "<br/>";
+                            }
+
+                            $this->zip->download(date('Y-m-d').'_email_attachments.zip');
+                            @ob_clean();
+                            @flush();
+                            exit();
+
+                        } else {
+                            header('HTTP/1.1 500 Internal Server Error');
+                            @ob_clean();
+                            @flush();
+                            exit();
+                        }
+                        
+                break;
+
+            default:
+                show_404();
+                break;
+        }
+
+    } else {
+        show_404();
+    }
+        
+}
+
 function load_reply(){
             
          if ( $this->user && $this->input->is_ajax_request() ) {
@@ -173,7 +141,7 @@ function load_reply(){
              } else {
                  $sender_display = str_replace(">", '', $sender[0]);
              }
-          $reply = '<form class="inbox-compose form-horizontal" id="fileupload" action="'.base_url().'messages/send_mail" method="POST" enctype="multipart/form-data">
+          $reply = form_open_multipart('messages/send_mail',' class="inbox-compose form-horizontal" id="fileupload"').'
             <div class="inbox-compose-btn">
                 <button class="btn green">
                     <i class="fa fa-check"></i>Send</button>
@@ -397,7 +365,7 @@ function load_message_list($mode = NULL){
                     $iTotalRecords = intval($message_count[0]->message_number);
                     $iDisplayLength = $filter;
                     $iDisplayLength = $iDisplayLength < 0 ? $iTotalRecords : $iDisplayLength; 
-                    $iDisplayStart = 0;
+                    $iDisplayStart = ($this->input->get('start') >= 0)? $this->input->get('start') : 0;
 
                     $end = $iDisplayStart + $iDisplayLength;
                     $end = $end > $iTotalRecords ? $iTotalRecords : $end;
@@ -411,7 +379,7 @@ function load_message_list($mode = NULL){
                     $iTotalRecords = intval($message_count[0]->message_number);
                     $iDisplayLength = $filter;
                     $iDisplayLength = $iDisplayLength < 0 ? $iTotalRecords : $iDisplayLength; 
-                    $iDisplayStart = 0;
+                    $iDisplayStart = ($this->input->get('start') >= 0)? $this->input->get('start') : 0;
 
                     $end = $iDisplayStart + $iDisplayLength;
                     $end = $end > $iTotalRecords ? $iTotalRecords : $end;
@@ -425,7 +393,7 @@ function load_message_list($mode = NULL){
                     $iTotalRecords = intval($message_count[0]->message_number);
                     $iDisplayLength = $filter;
                     $iDisplayLength = $iDisplayLength < 0 ? $iTotalRecords : $iDisplayLength; 
-                    $iDisplayStart = 0;
+                    $iDisplayStart = ($this->input->get('start') >= 0)? $this->input->get('start') : 0;
 
                     $end = $iDisplayStart + $iDisplayLength;
                     $end = $end > $iTotalRecords ? $iTotalRecords : $end;
@@ -462,7 +430,7 @@ function load_message_list($mode = NULL){
 
                     $wrapper['data'][] = array( 
                     
-                             '<tr class="' . $status . ' col-message" data-messageid="'.$value->view_id.'"><td class="inbox-small-cells"><label class="mt-checkbox mt-checkbox-single mt-checkbox-outline"><input type="checkbox" class="mail-checkbox" name="mails[]" value="'.$value->view_id.'" /><span></span></label></td>', '<td class="inbox-small-cells"><i class="fa fa-star '. $star .' star-marker" data-id="'.$value->view_id.'"></i></td>', 
+                             '<tr class="' . $status . ' col-message" data-messageid="'.$value->view_id.'"><td class="inbox-small-cells" style="width: 4px;"><label class="mt-checkbox mt-checkbox-single mt-checkbox-outline"><input type="checkbox" class="mail-checkbox" name="mails[]" value="'.$value->view_id.'" /><span></span></label></td>', '<td class="inbox-small-cells"><i class="fa fa-star '. $star .' star-marker" data-id="'.$value->view_id.'"></i></td>', '<td class="inbox-small-cells"><i class="fa fa-trash" data-id="'.$value->view_id.'"></i></td>', 
                              '<td class="view-message hidden-xs">'. $marker . $sender_display . '</td>','<td class="view-message ">'. $value->subject .'</td>', '<td class="view-message inbox-small-cells">'. $attachment .'</td> <td class="view-message"  style="width: 130px;">'. date_format(date_create($value->time), "M. d, Y H:i:s a") .'</td></tr>'
                     );
 
@@ -472,8 +440,8 @@ function load_message_list($mode = NULL){
                 $wrapper['records_end'] = $end;
                  
             } else {
-                 $messages ='<tr><td class="text-center" colspan="4"><code>No messages found.</code></td></tr>';
-
+                 $wrapper['data'][0] = array('<tr><td class="text-center" colspan="7"><code>No messages found.</code></td></tr>');
+                 $wrapper['total_records'] = false;
             }
 
          $this->output->set_content_type('application/json')->set_output(json_encode($wrapper));
@@ -598,16 +566,14 @@ function view_message($id = NULL){
                                           <div>
                                                 <strong>File name: '.$value->filename.'</strong>
                                                 <span>'.$size.'</span>
-                                                <a href="javascript:;">View </a>
-                                                <a href="javascript:;">Download </a>
+                                                <a href="'.base_url().'messages/download/single/'.$value->savename.'">Download </a>
                                          '.$files.'</div>';
                                 } else {
                                     $files = '<div class="margin-bottom-25"></div>
                                                 <div>
                                                     <strong>File name: '.$value->filename.'</strong>
                                                     <span>'.$size.'</span>
-                                                    <a href="javascript:;">View </a>
-                                                    <a href="javascript:;">Download </a>
+                                                    <a href="'.base_url().'messages/download/single/'.$value->savename.'">Download </a>
                                              '.$files.'</div>';
                                 }
                             }
@@ -616,7 +582,7 @@ function view_message($id = NULL){
                                             <div class="inbox-attached">
                                                 <div class="margin-bottom-15">
                                                     <span>attachments — </span>
-                                                    <a href="javascript:;">Download all attachments </a>
+                                                    <a href="'.base_url().'messages/download/all/'.$message_array->view_id.'">Download all attachments </a>
                                                 </div>'.$files.'</div>';
                         }
 

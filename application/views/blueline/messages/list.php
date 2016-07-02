@@ -42,10 +42,10 @@
                                     
                                     </div>
                                     <div class="inbox-content">
-                                        <table class="table table-bordered table-striped table-advance table-hover <?=(isset($message))? 'display-none': NULL; ?>">
+                                        <table class="table table-bordered table-striped table-advance table-hover display-none">
                                             <thead>
                                                 <tr>
-                                                    <th colspan="3">
+                                                    <th colspan="4" style="width: 65em; min-width: 40%;">
                                                         <label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">
                                                             <input type="checkbox" class="mail-group-checkbox" />
                                                             <span></span>
