@@ -4,6 +4,9 @@ System requitements: <br/>
 - PHP version 5.4 and up <br/>
 - MariaDB <br/>
 - bcrypt
+- CURL library
+- MySQLi Extension
+- SafeMode = off
 
 <hr>
 
