@@ -46,7 +46,8 @@ Website: http://www.linktech.com.ph/
         <link href="<?=base_url();?>assets/global/plugins/jquery-file-upload/css/jquery.fileupload-ui.css" rel="stylesheet" type="text/css" />
         <link href="<?=base_url();?>assets/global/plugins/bootstrap-summernote/summernote.css" rel="stylesheet" type="text/css" />
         <!-- END GLOBAL MANDATORY STYLES -->
-          
+        <link rel="stylesheet" type="text/css" media="screen" href="<?=base_url();?>assets/global/plugins/elFinder-2.1.12/css/elfinder.min.css">
+        <link rel="stylesheet" type="text/css" media="screen" href="<?=base_url();?>assets/global/plugins/elFinder-2.1.12/themes/windows-10/css/theme.css">
         <link href="<?=base_url();?>assets/global/plugins/bootstrap-toastr/toastr.min.css" rel="stylesheet" type="text/css" />
         <link href="<?=base_url();?>assets/global/plugins/bootstrap-daterangepicker/daterangepicker.min.css" rel="stylesheet" type="text/css" />
         <link href="<?=base_url();?>assets/global/plugins/morris/morris.css" rel="stylesheet" type="text/css" />
@@ -474,7 +475,12 @@ Website: http://www.linktech.com.ph/
 <script src="<?=base_url();?>assets/global/plugins/excanvas.min.js"></script> 
 <![endif]-->
         <!-- BEGIN CORE PLUGINS -->
-        <script src="<?=base_url();?>assets/global/plugins/jquery.min.js" type="text/javascript"></script>
+        <link rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css" />
+        <script type="text/javascript" src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-1.8.0.min.js"></script>
+        <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+        <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-migrate-1.3.0.min.js"></script>
         <script src="<?=base_url();?>assets/global/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
         <script src="<?=base_url();?>assets/global/plugins/js.cookie.min.js" type="text/javascript"></script>
         <script src="<?=base_url();?>assets/global/plugins/bootstrap-hover-dropdown/bootstrap-hover-dropdown.min.js" type="text/javascript"></script>
@@ -563,6 +569,7 @@ Website: http://www.linktech.com.ph/
         <!-- END THEME GLOBAL SCRIPTS -->
 
          <!-- BEGIN PAGE LEVEL SCRIPTS -->
+        <script type="text/javascript" src="<?=base_url();?>assets/global/plugins/elFinder-2.1.12/js/elfinder.min.js"></script>
         <script src="<?=base_url();?>assets/pages/scripts/table-accounts.js" type="text/javascript"></script>
         <script src="<?=base_url();?>assets/pages/scripts/profile.min.js" type="text/javascript"></script>
         <script src="<?=base_url();?>assets/apps/scripts/inbox.min.js" type="text/javascript"></script>
@@ -579,6 +586,26 @@ Website: http://www.linktech.com.ph/
         
         <script type="text/javascript">
             $('#settings_about').summernote({height: 300});
+       
+            $(document).ready(function() {
+                var elf = $('#elfinder').elfinder({
+                    // lang: 'ru',             // language (OPTIONAL)
+                    requestType: 'post',
+                    url : base_url+'file_manager/elfinder_init',  // connector URL (REQUIRED)
+                    customData: {token: token},
+                    height: 540,
+                    
+                    handlers: {upload: function (e, fm) {
+                      
+                    if (e.data && e.data.token) {
+                            fm.customData['token'] = e.data.token;
+                        }
+                    }},
+
+                }).elfinder('instance');       
+   
+            });
+
         </script>
         
         <?php if($act_uri === "accounts" && $act_uri_submenu === "edit"):?>

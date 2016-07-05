@@ -45,7 +45,7 @@
                                         <table class="table table-bordered table-striped table-advance table-hover display-none">
                                             <thead>
                                                 <tr>
-                                                    <th colspan="4" style="width: 55em;">
+                                                    <th colspan="4" style="width: 65em;">
                                                         <label class="mt-checkbox mt-checkbox-single mt-checkbox-outline">
                                                             <input type="checkbox" class="mail-group-checkbox" />
                                                             <span></span>
@@ -93,7 +93,7 @@
                                                             <i class="fa fa-angle-left"></i>
                                                         </a>
                                                         
-                                                        <input type="text" class="pagination-panel-input form-control input-sm input-inline" style="text-align:center; margin: 0px; width: 9em;">
+                                                        <input type="text" class="pagination-panel-input form-control input-sm input-inline" style="text-align:center; margin-left: -7px; width: 9em;">
 
                                                         <a class="btn btn-circle btn-sm blue btn-outline next">
                                                             <i class="fa fa-angle-right"></i>
