@@ -1,5 +1,7 @@
 # metronic-admin-panel-using-codeigniter
 
+<hr>
+
 System requitements: <br/>
 - PHP version 5.4 and up <br/>
 - MariaDB <br/>
@@ -29,7 +31,6 @@ Login details: <br/>
 ![Alt text](screenshots/screen4.png?raw=true "Optional Title")
 ![Alt text](screenshots/screen5.png?raw=true "Optional Title")
 ![Alt text](screenshots/screen6.png?raw=true "Optional Title")
-![Alt text](screenshots/screen7.png?raw=true "Optional Title")
 
 
 
