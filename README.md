@@ -27,9 +27,9 @@ Login details: <br/>
 <br/>
 
 ![Alt text](screenshots/screen2.png?raw=true "Optional Title")
+![Alt text](screenshots/screen3.png?raw=true "Optional Title")
 ![Alt text](screenshots/screen4.png?raw=true "Optional Title")
 ![Alt text](screenshots/screen5.png?raw=true "Optional Title")
-![Alt text](screenshots/screen6.png?raw=true "Optional Title")
 
 
 
