@@ -10,6 +10,7 @@ var FormFileUpload = function () {
                 disableImageResize: /Android(?!.*Chrome)|Opera/.test(window.navigator.userAgent),
                 maxFileSize: 5000000,
                 acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
+                url: 'gallery_maintenance/upload'
                 // Uncomment the following to send cross-domain cookies:
                 //xhrFields: {withCredentials: true},                
             });
@@ -41,7 +42,7 @@ var FormFileUpload = function () {
             $.ajax({
                 // Uncomment the following to send cross-domain cookies:
                 //xhrFields: {withCredentials: true},
-                url: $('#fileupload').attr("action"),
+                url: base_url+'gallery_maintenance/load_files',//$('#fileupload').attr("action"),
                 dataType: 'json',
                 context: $('#fileupload')[0]
             }).always(function () {

@@ -1,0 +1,30 @@
+<IfModule mod_rewrite.c> 
+# Options
+Options -Multiviews
+Options +FollowSymLinks
+
+#Enable mod rewrite
+RewriteEngine On
+#the location of the root of your site
+#if writing for subdirectories, you would enter /subdirectory
+RewriteBase /linktech
+
+#Removes access to CodeIgniter system folder by users.
+#Additionally this will allow you to create a System.php controller,
+#previously this would not have been possible.
+#'system' can be replaced if you have renamed your system folder.
+RewriteCond %{REQUEST_URI} ^system.*
+RewriteRule ^(.*)$ /index.php?/$1 [L]
+
+#Checks to see if the user is attempting to access a valid file,
+#such as an image or css document, if this isn't true it sends the
+#request to index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+#This last condition enables access to the images and css
+#folders, and the robots.txt file
+RewriteCond $1 !^(index\.php|images|general|javascript|robots\.txt|js|css|assets|phpinfo\.php)
+
+RewriteRule ^(.*)$ index.php?/$1 [L]
+</IfModule> 

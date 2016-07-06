@@ -576,6 +576,7 @@ Website: http://www.linktech.com.ph/
         <script src="<?=base_url();?>assets/layouts/global/scripts/cookie-consent.min.js" type="text/javascript"></script>
         <script src="<?=base_url();?>assets/pages/scripts/user-idletimeout.js" type="text/javascript"></script>
         <script src="<?=base_url();?>assets/pages/scripts/dashboard.min.js" type="text/javascript"></script>
+        <script src="<?=base_url();?>assets/pages/scripts/form-fileupload.js" type="text/javascript"></script>
         <!-- END PAGE LEVEL SCRIPTS -->
 
         <!-- BEGIN THEME LAYOUT SCRIPTS -->
@@ -590,7 +591,7 @@ Website: http://www.linktech.com.ph/
             $(document).ready(function() {
                 var elf = $('#elfinder').elfinder({
                     // lang: 'ru',             // language (OPTIONAL)
-                    requestType: 'post',
+                    //requestType: 'post',
                     url : base_url+'file_manager/elfinder_init',  // connector URL (REQUIRED)
                     customData: {token: token},
                     height: 540,
@@ -599,6 +600,7 @@ Website: http://www.linktech.com.ph/
                       
                     if (e.data && e.data.token) {
                             fm.customData['token'] = e.data.token;
+                            token = e.data.token;
                         }
                     }},
 

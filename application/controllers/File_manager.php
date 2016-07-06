@@ -22,14 +22,14 @@ class File_manager extends MY_Controller {
 
 function elfinder_init()
 {
-  if ($this->user && $this->input->is_ajax_request()) {
+  if ($this->user) {
       $this->load->helper('path');
       $opts = array(
         'bind' => array('upload' => array(array($this, 'setToken'))),
-        'uploadMaxConn' => 1,
         // 'debug' => true, 
         'roots' => array(
           array( 
+            'uploadMaxConn' => 1,
             'driver' => 'LocalFileSystem', 
             'path'   => set_realpath('files/media'), 
             'URL'    => site_url('files/media') . '/',
@@ -45,7 +45,7 @@ function elfinder_init()
   
 }
 
-private function setToken($cmd, &$result, $args, $elfinder) {
+function setToken($cmd, &$result, $args, $elfinder) {
         if (isset($result['added']) && $result['added']) {
             $token_name = $this->security->get_csrf_token_name(); //return string 'token'
             $hash = $this->security->get_csrf_hash();
