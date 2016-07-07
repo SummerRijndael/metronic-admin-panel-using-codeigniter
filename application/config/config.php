@@ -443,7 +443,7 @@ $config['csrf_token_name'] = 'token';
 $config['csrf_cookie_name'] = 'privacy_cookie';
 $config['csrf_expire'] = 7200;
 $config['csrf_regenerate'] = TRUE;
-$config['csrf_exclude_uris'] = array('file_manager/elfinder_init', 'sample/upload');
+$config['csrf_exclude_uris'] = array('file_manager/elfinder_init', 'gallery_maintenance/upload');
 
 /*
 |--------------------------------------------------------------------------
@@ -465,7 +465,7 @@ $config['csrf_exclude_uris'] = array('file_manager/elfinder_init', 'sample/uploa
 | by the output class.  Do not 'echo' any values with compression enabled.
 |
 */
-$config['compress_output'] = TRUE;
+$config['compress_output'] = false;
 
 /*
 |--------------------------------------------------------------------------

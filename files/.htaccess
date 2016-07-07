@@ -1,0 +1,12 @@
+Options -Indexes
+
+<files .htaccess>
+  order allow,deny
+  deny from all
+</files>
+
+#Add all file you want to protect...
+<FilesMatch "\.(htaccess|htpasswd|ini|zip|rar|mp3|phps|fla|psd|log|sh)$">
+  Order Allow,Deny
+  Deny from all
+</FilesMatch>

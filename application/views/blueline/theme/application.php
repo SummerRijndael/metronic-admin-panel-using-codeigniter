@@ -53,12 +53,13 @@ Website: http://www.linktech.com.ph/
         <link href="<?=base_url();?>assets/global/plugins/morris/morris.css" rel="stylesheet" type="text/css" />
         <link href="<?=base_url();?>assets/global/plugins/fullcalendar/fullcalendar.min.css" rel="stylesheet" type="text/css" />
         <link href="<?=base_url();?>assets/global/plugins/jqvmap/jqvmap/jqvmap.css" rel="stylesheet" type="text/css" />
+        <link href="<?=base_url();?>assets/global/plugins/cubeportfolio/css/cubeportfolio.css" rel="stylesheet" type="text/css" />
         <!-- BEGIN THEME GLOBAL STYLES -->
         <link href="<?=base_url();?>assets/global/css/components-md.min.css" rel="stylesheet" id="style_components" type="text/css" />
         <link href="<?=base_url();?>assets/global/css/plugins-md.min.css" rel="stylesheet" type="text/css" />
         <!-- END THEME GLOBAL STYLES -->
         <link href="<?=base_url();?>assets/pages/css/profile.min.css" rel="stylesheet" type="text/css" />
-
+        <link href="<?=base_url();?>assets/pages/css/portfolio.min.css" rel="stylesheet" type="text/css" />
         <!-- BEGIN PAGE LEVEL STYLES -->
         <link href="<?=base_url();?>assets/apps/css/inbox.min.css" rel="stylesheet" type="text/css" />
         <!-- END PAGE LEVEL STYLES -->
@@ -562,6 +563,7 @@ Website: http://www.linktech.com.ph/
         <script src="<?=base_url();?>assets/global/plugins/jqvmap/jqvmap/maps/jquery.vmap.germany.js" type="text/javascript"></script>
         <script src="<?=base_url();?>assets/global/plugins/jqvmap/jqvmap/maps/jquery.vmap.usa.js" type="text/javascript"></script>
         <script src="<?=base_url();?>assets/global/plugins/jqvmap/jqvmap/data/jquery.vmap.sampledata.js" type="text/javascript"></script>
+        <script src="<?=base_url();?>assets/global/plugins/cubeportfolio/js/jquery.cubeportfolio.min.js" type="text/javascript"></script>
         <!-- END PAGE LEVEL PLUGINS -->
 
         <!-- BEGIN THEME GLOBAL SCRIPTS -->
@@ -576,7 +578,8 @@ Website: http://www.linktech.com.ph/
         <script src="<?=base_url();?>assets/layouts/global/scripts/cookie-consent.min.js" type="text/javascript"></script>
         <script src="<?=base_url();?>assets/pages/scripts/user-idletimeout.js" type="text/javascript"></script>
         <script src="<?=base_url();?>assets/pages/scripts/dashboard.min.js" type="text/javascript"></script>
-        <script src="<?=base_url();?>assets/pages/scripts/form-fileupload.js" type="text/javascript"></script>
+        <?php if($act_uri === "gallery_maintenance"):?><script src="<?=base_url();?>assets/pages/scripts/gallery.js" type="text/javascript"></script><?php endif;?>
+        <script src="<?=base_url();?>assets/pages/scripts/portfolio-3.min.js" type="text/javascript"></script>
         <!-- END PAGE LEVEL SCRIPTS -->
 
         <!-- BEGIN THEME LAYOUT SCRIPTS -->
@@ -587,7 +590,8 @@ Website: http://www.linktech.com.ph/
         
         <script type="text/javascript">
             $('#settings_about').summernote({height: 300});
-       
+            $('#project').summernote({height: 500});
+         <?php if($act_uri === "file_manager"):?>
             $(document).ready(function() {
                 var elf = $('#elfinder').elfinder({
                     // lang: 'ru',             // language (OPTIONAL)
@@ -607,7 +611,7 @@ Website: http://www.linktech.com.ph/
                 }).elfinder('instance');       
    
             });
-
+        <?php endif;?>
         </script>
         
         <?php if($act_uri === "accounts" && $act_uri_submenu === "edit"):?>

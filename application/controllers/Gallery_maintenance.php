@@ -13,7 +13,7 @@ class Gallery_maintenance extends MY_Controller {
 
 	public function index()
 	{
-		$this->content_view = 'gallery/beta';
+		$this->content_view = 'gallery/beta_3';
 	}
 
 
@@ -74,36 +74,43 @@ class Gallery_maintenance extends MY_Controller {
 
             // we have to initialize before upload
             $this->upload->initialize($config);
+            $info = new StdClass;
 
-            if (! $this->upload->do_upload("files")) {
-                $errors++;
+            if ($this->upload->do_upload("files")) {
+                $data = $this->upload->data();
+
+                $config['image_library'] = 'gd2';
+                $config['source_image'] = $data['full_path'];
+                $config['create_thumb'] = TRUE;
+                $config['encrypt_name'] = TRUE;
+                $config['new_image'] = $data['file_path'] . 'thumbs/';
+                $config['maintain_ratio'] = TRUE;
+                $config['thumb_marker'] = '';
+                $config['width'] = 75;
+                $config['height'] = 50;
+                $this->load->library('image_lib', $config);
+                $this->image_lib->resize();
+
+                $info->blah = 'Image name :';
+                $info->name = $data['file_name'];
+                $info->size = $data['file_size'] * 1024;
+                $info->type = $data['file_type'];
+                $info->url = $upload_path_url . $data['file_name'];
+                // I set this to original file since I did not create thumbs.  change to thumbnail directory if you do = $upload_path_url .'/thumbs' .$data['file_name']
+                $info->thumbnailUrl = $upload_path_url . 'thumbs/' . $data['file_name'];
+                $info->deleteUrl = base_url() . 'gallery_maintenance/deleteImage/' . $data['file_name'];
+                $info->deleteType = 'DELETE';
+                $info->error = null;
+
+            } else {
+                $error = array('error' => strip_tags($this->upload->display_errors()));
+                if ($error['error'] != "You did not select a file to upload.") {
+                    $info->name = $_FILES['files']['name'];
+                    $info->size = $_FILES['files']['size'];
+                    $info->error = $error['error'];
+                }
             }
 
-            $data = $this->upload->data();
-
-            $config['image_library'] = 'gd2';
-            $config['source_image'] = $data['full_path'];
-            $config['create_thumb'] = TRUE;
-            $config['encrypt_name'] = TRUE;
-            $config['new_image'] = $data['file_path'] . 'thumbs/';
-            $config['maintain_ratio'] = TRUE;
-            $config['thumb_marker'] = '';
-            $config['width'] = 75;
-            $config['height'] = 50;
-            $this->load->library('image_lib', $config);
-            $this->image_lib->resize();
-
-            $info = new StdClass;
-            $info->blah = 'Image name :';
-            $info->name = $data['file_name'];
-            $info->size = $data['file_size'] * 1024;
-            $info->type = $data['file_type'];
-            $info->url = $upload_path_url . $data['file_name'];
-            // I set this to original file since I did not create thumbs.  change to thumbnail directory if you do = $upload_path_url .'/thumbs' .$data['file_name']
-            $info->thumbnailUrl = $upload_path_url . 'thumbs/' . $data['file_name'];
-            $info->deleteUrl = base_url() . 'gallery_maintenance/deleteImage/' . $data['file_name'];
-            $info->deleteType = 'DELETE';
-            $info->error = null;
 
             $files_info[] = $info;
             
