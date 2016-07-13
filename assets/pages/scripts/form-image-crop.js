@@ -104,7 +104,6 @@ var FormImageCrop = function () {
             bgFade: this.checked
           });
         }).attr('checked', true);
-        App.updateUniform('#fadetog');
 
         $('#shadetog').change(function(){
           if (this.checked) $('#shadetxt').slideDown();
@@ -255,10 +254,8 @@ var FormImageCrop = function () {
 
             // Setup and dipslay the interface for "enabled"
             $('#can_click,#can_move,#can_size').attr('checked','checked');
-            App.updateUniform('#can_click,#can_move,#can_size');
 
             $('#ar_lock,#size_lock,#bg_swap').attr('checked',false);
-            App.updateUniform('#ar_lock,#size_lock,#bg_swap');
             
             $('.requiresjcrop').show();
 
@@ -292,7 +289,6 @@ var FormImageCrop = function () {
         {
           jcrop_api.setOptions({ allowSelect: true });
           $('#can_click').attr('checked',false);
-          App.updateUniform('#can_click');
         };
 
         // Attach interface buttons

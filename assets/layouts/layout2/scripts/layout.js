@@ -9,6 +9,9 @@ var Layout = function () {
 
     var resBreakpointMd = App.getResponsiveBreakpoint('md');
 
+    var ajaxContentSuccessCallbacks = [];
+    var ajaxContentErrorCallbacks = [];
+
     //* BEGIN:CORE HANDLERS *//
     // this function handles responsive layout on screen size resize or mobile device rotate.
 
@@ -216,8 +219,6 @@ var Layout = function () {
 
             var url = $(this).attr("href");
             var menuContainer = $('.page-sidebar ul');
-            var pageContent = $('.page-content');
-            var pageContentBody = $('.page-content .page-content-body');
 
             menuContainer.children('li.active').removeClass('active');
             menuContainer.children('arrow.open').removeClass('open');
@@ -232,30 +233,7 @@ var Layout = function () {
                 $('.page-header .responsive-toggler').click();
             }
 
-            App.startPageLoading();
-
-            var the = $(this);
-            
-            $.ajax({
-                type: "GET",
-                cache: false,
-                url: url,
-                dataType: "html",
-                success: function (res) {
-                    if (the.parents('li.open').size() === 0) {
-                        $('.page-sidebar-menu > li.open > a').click();
-                    }
-
-                    App.stopPageLoading();
-                    pageContentBody.html(res);
-                    Layout.fixContentHeight(); // fix content height
-                    App.initAjax(); // initialize core stuff
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    App.stopPageLoading();
-                    pageContentBody.html('<h4>Could not load the requested content.</h4>');
-                }
-            });
+            Layout.loadAjaxContent(url, $(this));
         });
 
         // handle ajax link within main content
@@ -264,8 +242,6 @@ var Layout = function () {
             App.scrollTop();
 
             var url = $(this).attr("href");
-            var pageContent = $('.page-content');
-            var pageContentBody = $('.page-content .page-content-body');
 
             App.startPageLoading();
 
@@ -273,22 +249,7 @@ var Layout = function () {
                 $('.page-header .responsive-toggler').click();
             }
 
-            $.ajax({
-                type: "GET",
-                cache: false,
-                url: url,
-                dataType: "html",
-                success: function (res) {
-                    App.stopPageLoading();
-                    pageContentBody.html(res);
-                    Layout.fixContentHeight(); // fix content height
-                    App.initAjax(); // initialize core stuff
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    pageContentBody.html('<h4>Could not load the requested content.</h4>');
-                    App.stopPageLoading();
-                }
-            });
+            Layout.loadAjaxContent(url);
         });
 
         // handle scrolling to top on responsive menu toggler click when header is fixed for mobile view
@@ -577,6 +538,50 @@ var Layout = function () {
             this.initSidebar();
             this.initContent();
             this.initFooter();
+        },
+
+        loadAjaxContent: function(url, sidebarMenuLink) {
+            var pageContent = $('.page-content .page-content-body');    
+
+            App.startPageLoading({animate: true});
+            
+            $.ajax({
+                type: "GET",
+                cache: false,
+                url: url,
+                dataType: "html",
+                success: function (res) {    
+                    App.stopPageLoading();
+                                    
+                    for (var i = 0; i < ajaxContentSuccessCallbacks.length; i++) {
+                        ajaxContentSuccessCallbacks[i].call(res);
+                    }
+
+                    if (sidebarMenuLink.size() > 0 && sidebarMenuLink.parents('li.open').size() === 0) {
+                        $('.page-sidebar-menu > li.open > a').click();
+                    }
+
+                    pageContent.html(res);
+                    Layout.fixContentHeight(); // fix content height
+                    App.initAjax(); // initialize core stuff
+                },
+                error: function (res, ajaxOptions, thrownError) {
+                    App.stopPageLoading();
+                    pageContent.html('<h4>Could not load the requested content.</h4>');
+
+                    for (var i = 0; i < ajaxContentErrorCallbacks.length; i++) {
+                        ajaxContentSuccessCallbacks[i].call(res);
+                    }                    
+                }
+            });
+        },
+
+        addAjaxContentSuccessCallback: function(callback) {
+            ajaxContentSuccessCallbacks.push(callback);
+        },
+
+        addAjaxContentErrorCallback: function(callback) {
+            ajaxContentErrorCallbacks.push(callback);
         },
 
         //public function to fix the sidebar and content height accordingly

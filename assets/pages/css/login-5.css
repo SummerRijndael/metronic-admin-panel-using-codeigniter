@@ -118,6 +118,8 @@
 @media (max-width: 1023px) {
   .user-login-5 {
     min-height: 50vh; }
+    .user-login-5 .mt-login-5-bsfix {
+      width: 100%; }
     .user-login-5 .login-bg {
       min-height: 50vh; }
     .user-login-5 .login-logo.login-6 {

@@ -1,42 +1,6 @@
 var Login = function() {
 
     var handleLogin = function() {
-         $("#forgotpass").validate({
-
-            submitHandler: function(r) {
-                 var postData = $('#forgotpass').serializeArray();
-                      var formURL = $('#forgotpass').attr("action");
-                          
-                      request = $.ajax({
-                                            url: formURL,
-                                            type: "post",
-                                            data: postData,
-                                            dataType: "json",
-                                            mimeType:"multipart/form-data",
-                                            cache: false,
-                                            async: true,
-                                        });
-
-                                        $('.reset-pass').attr('disabled','disabled');
-                                        $('input[type=email]').attr('disabled','disabled');
-                                        // callback handler that will be called on success
-                                        request.done(function (response, textStatus, jqXHR) {
-                                            $(".message").html(response.message);
-                                            $('input[type=hidden]').attr("name",response.token_name);
-                                            $('input[type=hidden]').attr("value",response.token);
-                                        });
-
-                                        // callback handler that will be called on failure
-                                        request.fail(function (jqXHR, textStatus, errorThrown) {
-                                         
-                                        });
-
-                                       request.always(function () {
-                                          $('.reset-pass').removeAttr('disabled','disabled');
-                                          $('input[type=email]').removeAttr('disabled','disabled');
-                                      });
-            }  
-        }); 
 
         $('.login-form').validate({
             errorElement: 'span', //default input error message container
@@ -49,6 +13,9 @@ var Login = function() {
                 password: {
                     required: true
                 },
+                remember: {
+                    required: false
+                }
             },
 
             messages: {
@@ -79,45 +46,7 @@ var Login = function() {
             },
 
             submitHandler: function(form) {
-                var postData = $('#login-form').serializeArray();
-                      var formURL = $('#login-form').attr("action");
-                          
-                      request = $.ajax({
-                                            url: formURL,
-                                            type: "post",
-                                            data: postData,
-                                            dataType: "json",
-                                            mimeType:"multipart/form-data",
-                                            cache: false,
-                                            async: true,
-                                        });
-
-                                        $('.login').attr('disabled','disabled');
-                                        $('input[type=text]').attr('disabled','disabled');
-                                        $('input[type=password]').attr('disabled','disabled');
-                                        // callback handler that will be called on success
-                                        request.done(function (response, textStatus, jqXHR) {
-                                            if (response.message != "Username or password is invalid.") {
-                                                $('body').fadeOut('slow');
-                                                window.location = response.message;
-                                            } else {
-                                                    $(".error-message").html(response.message);
-                                                    $('input[type=hidden]').attr("name",response.token_name);
-                                                    $('input[type=hidden]').attr("value",response.token);
-                                                    $(".alert-danger", $("#login-form")).show();                                  
-                                            }
-                                        });
-
-                                        // callback handler that will be called on failure
-                                        request.fail(function (jqXHR, textStatus, errorThrown) {
-                                         
-                                        });
-
-                                       request.always(function () {
-                                         $('.login').removeAttr('disabled','disabled');
-                                         $('input[type=text]').removeAttr('disabled','disabled');
-                                         $('input[type=password]').removeAttr('disabled','disabled');
-                                      });
+                form.submit(); // form validation success, call ajax form submit
             }
         });
 
@@ -140,12 +69,13 @@ var Login = function() {
         });
 
         $('#forget-password').click(function(){
-            $(".login-form").slideUp(), $(".forget-form").slideDown();
+            $('.login-form').hide();
+            $('.forget-form').show();
         });
 
         $('#back-btn').click(function(){
-            $('input[type=email]').val("");
-            $(".login-form").slideDown(), $(".forget-form").slideUp();
+            $('.login-form').show();
+            $('.forget-form').hide();
         });
     }
 
@@ -160,9 +90,9 @@ var Login = function() {
 
             // init background slide images
             $('.login-bg').backstretch([
-                "assets/pages/img/login/bg1.jpg",
-                "assets/pages/img/login/bg2.jpg",
-                "assets/pages/img/login/bg3.jpg"
+                "../assets/pages/img/login/bg1.jpg",
+                "../assets/pages/img/login/bg2.jpg",
+                "../assets/pages/img/login/bg3.jpg"
                 ], {
                   fade: 1000,
                   duration: 8000

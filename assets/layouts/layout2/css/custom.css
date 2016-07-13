@@ -1,1 +1,24 @@
-/* here you can put your own css to customize and override the theme */
+
+.nav_section li {
+	float: left;
+	margin-left: 10px;
+}
+
+.nav_section ul li {
+	clear: left;
+	margin-left: -1.8em;
+}
+
+ul.details {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.details li span {
+    font-weight: 300;
+    padding-right: 10px;
+    min-width: 120px;
+    display: inline-block;
+    padding-left: 5px;
+}

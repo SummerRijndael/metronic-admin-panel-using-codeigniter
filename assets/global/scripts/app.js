@@ -322,7 +322,7 @@ var App = function() {
     // Handles Bootstrap Tabs.
     var handleTabs = function() {
         //activate tab if tab id provided in the URL
-        if (location.hash) {
+        if (encodeURI(location.hash)) {
             var tabid = encodeURI(location.hash.substr(1));
             $('a[href="#' + tabid + '"]').parents('.tab-pane:hidden').each(function() {
                 var tabid = $(this).attr("id");
@@ -588,7 +588,6 @@ var App = function() {
             handleOnResize(); // set and handle responsive    
 
             //UI Component handlers     
-
             $(".checkbox-beauty").labelauty();
             $(".radio-beauty").labelauty();
             $(".checkbox-nolabel").labelauty({ label: false });
@@ -1070,6 +1069,8 @@ function notifyU(state, message, title){
                 toastr[state](message, title);
 }
 
+
+<!-- END THEME LAYOUT SCRIPTS -->
 
 jQuery(document).ready(function() {    
    App.init(); // init metronic core componets

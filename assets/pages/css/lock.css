@@ -119,29 +119,6 @@ body {
 
 @media (max-width: 768px) {
   .page-lock {
-    margin: 100px auto; } }
-
-@media (max-width: 560px) {
-  .page-lock {
-    margin: 50px auto;
-    width: 400px; }
-  .lock-body {
-    margin: 30px; }
-  .lock-avatar {
-    width: 120px;
-    height: 120px;
-    margin-top: 20px; }
-  .lock-form h4 {
-    font-size: 16px; }
-  .lock-form .form-group .form-control {
-    padding: 20px 20px;
-    width: 170px; }
-  .lock-form .form-actions .btn-success {
-    width: 170px;
-    margin-bottom: 10px; } }
-
-@media (max-width: 420px) {
-  .page-lock {
     margin: 30px auto;
     width: 280px; }
   .lock-body {
@@ -163,6 +140,6 @@ body {
   .lock-form .form-group .form-control {
     padding: 20px 20px;
     width: 240px; }
-  .lock-form .form-actions .btn-success {
-    width: 240px;
+  .lock-form .form-actions .btn {
+    width: 100%;
     margin-bottom: 20px; } }

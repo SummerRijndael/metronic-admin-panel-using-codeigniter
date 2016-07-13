@@ -58,7 +58,10 @@ var ComponentsTypeahead = function () {
         var custom = new Bloodhound({
           datumTokenizer: function(d) { return d.tokens; },
           queryTokenizer: Bloodhound.tokenizers.whitespace,
-          remote: '../demo/typeahead_custom.php?query=%QUERY'
+          remote: {
+            url: '../demo/typeahead_custom.php?query=%QUERY',
+            wildcard: '%QUERY'
+          }
         });
          
         custom.initialize();

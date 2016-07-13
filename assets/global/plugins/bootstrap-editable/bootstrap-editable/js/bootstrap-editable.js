@@ -2449,7 +2449,7 @@ To create your own input you can inherit from this class.
         @type string
         @default input-medium
         **/         
-        inputclass: 'input-medium',
+        inputclass: 'form-control input-medium',
         //scope for external methods (e.g. source defined as function)
         //for internal use only
         scope: null,
@@ -3634,7 +3634,7 @@ $(function(){
         //store function that renders text in select2
         this.formatSelection = this.options.select2.formatSelection; 
         if (typeof(this.formatSelection) !== "function") {
-            this.formatSelection = function (e) { return e.text; };
+            this.formatSelection = function (e) { return e.text ? e.text : e; };
         }       
     };
 
@@ -3683,8 +3683,8 @@ $(function(){
                $.each(data, function(k, v){
                    text.push(v && typeof v === 'object' ? that.formatSelection(v) : v); 
                });                   
-           } else if(data) {
-               text = that.formatSelection(data);  
+           } else if(data && (typeof(this.formatSelection) == "function")) {
+               text = that.formatSelection(data); 
            }
 
            text = $.isArray(text) ? text.join(this.options.viewseparator) : text;
@@ -4414,7 +4414,7 @@ $(function(){
         @property inputclass 
         @default null
         **/         
-        inputclass: null,
+        inputclass: 'form-control input-medium',
         /**
         Format used for sending value to server. Also applied when converting date from <code>data-value</code> attribute.<br>
         See list of tokens in [momentjs docs](http://momentjs.com/docs/#/parsing/string-format)  

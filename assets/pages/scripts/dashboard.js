@@ -465,7 +465,7 @@ var Dashboard = function() {
                 width: '100',
                 barWidth: 5,
                 height: '55',
-                barColor: '#35aa47',
+                barColor: '#f36a5b',
                 negBarColor: '#e02222'
             });
 
@@ -474,7 +474,7 @@ var Dashboard = function() {
                 width: '100',
                 barWidth: 5,
                 height: '55',
-                barColor: '#ffb848',
+                barColor: '#5c9bd1',
                 negBarColor: '#e02222'
             });
 
@@ -665,10 +665,13 @@ var Dashboard = function() {
                 //"endDate": "11/14/2015",
                 opens: (App.isRTL() ? 'right' : 'left'),
             }, function(start, end, label) {
-                $('#dashboard-report-range span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+                if ($('#dashboard-report-range').attr('data-display-range') != '0') {
+                    $('#dashboard-report-range span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+                }
             });
-
-            $('#dashboard-report-range span').html(moment().subtract('days', 29).format('MMMM D, YYYY') + ' - ' + moment().format('MMMM D, YYYY'));
+             if ($('#dashboard-report-range').attr('data-display-range') != '0') {
+                $('#dashboard-report-range span').html(moment().subtract('days', 29).format('MMMM D, YYYY') + ' - ' + moment().format('MMMM D, YYYY'));
+            }
             $('#dashboard-report-range').show();
         },
 

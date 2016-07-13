@@ -223,14 +223,16 @@ var FormEditable = function() {
         });
 
         $('#fruits').on('shown', function(e, reason) {
-            App.initUniform();
+            
         });
 
         $('#tags').editable({
             inputclass: 'form-control input-medium',
             select2: {
-                tags: ['html', 'javascript', 'css', 'ajax'],
-                tokenSeparators: [",", " "]
+                data: ['html', 'javascript', 'css', 'ajax'],
+                tags: true,
+                tokenSeparators: [','], 
+                multiple: true
             }
         });
 

@@ -5268,7 +5268,7 @@ button.close {
   top: 50%;
   right: 0;
   margin-top: -5px;
-  border-width: 5px 0 5px 5px /*rtl:ignore*/;
+  border-width: 5px 0 5px 5px/*rtl:ignore*/;
   border-left-color: #000/*rtl:ignore*/; }
 
 .tooltip.bottom .tooltip-arrow {
@@ -5330,7 +5330,7 @@ button.close {
   .popover.bottom {
     margin-top: 10px; }
   .popover.left {
-    margin-left: -10px /*rtl:ignore*/; }
+    margin-left: -10px/*rtl:ignore*/; }
 
 .popover-title {
   margin: 0;
@@ -5374,7 +5374,7 @@ button.close {
 
 .popover.right > .arrow {
   top: 50%;
-  left: -11px /*rtl:ignore*/;
+  left: -11px/*rtl:ignore*/;
   margin-top: -11px;
   border-left-width: 0/*rtl:ignore*/;
   border-right-color: #999999/*rtl:ignore*/;
@@ -5402,7 +5402,7 @@ button.close {
 
 .popover.left > .arrow {
   top: 50%;
-  right: -11px /*rtl:ignore*/;
+  right: -11px/*rtl:ignore*/;
   margin-top: -11px;
   border-right-width: 0/*rtl:ignore*/;
   border-left-color: #999999/*rtl:ignore*/;

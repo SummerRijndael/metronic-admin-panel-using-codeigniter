@@ -25,6 +25,10 @@ var FormValidation = function () {
                         minlength: 2,
                         required: true
                     },
+                    input_group: {
+                        email: true,
+                        required: true
+                    },
                     email: {
                         required: true,
                         email: true
@@ -64,7 +68,17 @@ var FormValidation = function () {
                     App.scrollTo(error1, -200);
                 },
 
+                errorPlacement: function (error, element) { // render error placement for each input type
+                    var cont = $(element).parent('.input-group');
+                    if (cont) {
+                        cont.after(error);
+                    } else {
+                        element.after(error);
+                    }
+                },
+
                 highlight: function (element) { // hightlight error inputs
+
                     $(element)
                         .closest('.form-group').addClass('has-error'); // set error class to the control group
                 },

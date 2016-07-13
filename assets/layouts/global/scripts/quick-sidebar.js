@@ -113,7 +113,6 @@ var QuickSidebar = function () {
     // Handles quick sidebar tasks
     var handleQuickSidebarAlerts = function () {
         var wrapper = $('.page-quick-sidebar-wrapper');
-        var wrapperAlerts = wrapper.find('.page-quick-sidebar-alerts');
 
         var initAlertsSlimScroll = function () {
             var alertList = wrapper.find('.page-quick-sidebar-alerts-list');
@@ -134,14 +133,13 @@ var QuickSidebar = function () {
     // Handles quick sidebar settings
     var handleQuickSidebarSettings = function () {
         var wrapper = $('.page-quick-sidebar-wrapper');
-        var wrapperAlerts = wrapper.find('.page-quick-sidebar-settings');
 
         var initSettingsSlimScroll = function () {
             var settingsList = wrapper.find('.page-quick-sidebar-settings-list');
             var settingsListHeight;
 
-            settingsListHeight = wrapper.height() - wrapper.find('.nav-justified > .nav-tabs').outerHeight();
-
+            settingsListHeight = wrapper.height() - 80 - wrapper.find('.nav-justified > .nav-tabs').outerHeight();
+           
             // alerts list 
             App.destroySlimScroll(settingsList);
             settingsList.attr("data-height", settingsListHeight);
